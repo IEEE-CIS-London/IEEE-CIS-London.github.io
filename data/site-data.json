@@ -1,0 +1,215 @@
+{
+  "siteMeta": {
+    "title": "IEEE CIS London Section",
+    "subtitle": "Computational Intelligence Society — UK & Ireland Section (London Chapter)",
+    "heroBadge": "IEEE Computational Intelligence Society • London Chapter",
+    "heroTitle": "Advancing Nature-Inspired Computational Intelligence in London",
+    "heroDescription": "Connecting researchers, industry pioneers, and students across Greater London in Neural Networks, Fuzzy Systems, Evolutionary Computation, and Emerging AI Paradigms.",
+    "announcement": "📢 Call for Participation: 2026 IEEE CIS London Autumn Symposium on Neuro-Symbolic & Agentic AI at Imperial College London — Registration is now open!",
+    "contactEmail": "london-cis@ieee-ukandireland.org",
+    "location": "London, United Kingdom (IEEE Region 8 • UK & Ireland Section)",
+    "githubRepo": "sankunliu/IEEE_London_CIS_section",
+    "githubBranch": "main",
+    "stats": [
+      { "value": "450+", "label": "Active CIS Members" },
+      { "value": "12+", "label": "Partner Universities" },
+      { "value": "35+", "label": "Annual Seminars & Workshops" },
+      { "value": "3", "label": "Core Technical Pillars" }
+    ]
+  },
+  "events": [
+    {
+      "id": "evt-2026-autumn-symposium",
+      "title": "2026 IEEE CIS London Symposium on Foundation Models & Evolutionary Intelligence",
+      "date": "2026-11-18",
+      "time": "09:30 - 17:30 GMT",
+      "location": "Imperial College London, South Kensington Campus (Huxley Building, Room 311)",
+      "category": "Symposium",
+      "status": "upcoming",
+      "speaker": "Prof. Yaochu Jin (IEEE Fellow) & Dr. Marta Garnelo (DeepMind London)",
+      "registrationUrl": "#contact",
+      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80",
+      "summary": "Our flagship annual symposium bringing together leading AI scientists across London to explore the synergy between Large Language Models, Evolutionary Optimization, and Multi-Agent Systems.",
+      "content": "The 2026 IEEE CIS London Autumn Symposium is our premier annual gathering for academics, PhD researchers, and industry practitioners across Greater London.\n\nKey Highlights:\n• Morning Keynote: Evolutionary Optimization in the Era of Large Foundation Models\n• Afternoon Panel: Safe, Interpretable, and Energy-Efficient Computational Intelligence\n• Early-Career & PhD Poster Spotlight Session (Best Poster Award sponsored by IEEE CIS)\n• Evening Networking Reception with IEEE UK & Ireland Section leaders."
+    },
+    {
+      "id": "evt-2026-fuzzy-xai-workshop",
+      "title": "Distinguished Lecture & Workshop: Explainable AI (XAI) and Type-2 Fuzzy Logic in Healthcare",
+      "date": "2026-12-04",
+      "time": "14:00 - 17:00 GMT",
+      "location": "University College London (UCL), Roberts Building G06 & Hybrid via Zoom",
+      "category": "Distinguished Lecture",
+      "status": "upcoming",
+      "speaker": "Prof. Christian Wagner & UCL Centre for Artificial Intelligence",
+      "registrationUrl": "#contact",
+      "image": "https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=1000&q=80",
+      "summary": "An interactive technical workshop examining how interpretable fuzzy inference systems and neuro-fuzzy architectures enable trustworthy clinical decision support in NHS trials.",
+      "content": "Trustworthiness and interpretability remain critical barriers to deploying black-box deep learning models in high-stakes healthcare environments.\n\nIn this IEEE CIS Distinguished Lecture hosted at UCL, we explore how modern Type-2 Fuzzy Systems combined with deep representation learning provide transparent, uncertainty-aware clinical predictions. Hands-on Python notebooks and benchmark datasets will be shared with all attendees."
+    },
+    {
+      "id": "evt-2026-summer-phd-colloquium",
+      "title": "London Student & Young Professionals (YP) Summer Colloquium on Bio-Inspired Computing",
+      "date": "2026-07-15",
+      "time": "10:00 - 16:30 BST",
+      "location": "King's College London, Strand Campus (Bush House Auditorium)",
+      "category": "Young Professionals",
+      "status": "past",
+      "speaker": "IEEE CIS London Chapter Executive Committee & Industry Mentors",
+      "registrationUrl": "",
+      "image": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=1000&q=80",
+      "summary": "Over 120 PhD candidates and early-career researchers gathered at King's College London for lightning talks, career mentoring, and collaborative hackathons.",
+      "content": "The Summer Colloquium showcased groundbreaking student research from KCL, Imperial, UCL, Queen Mary, Brunel, and City University of London.\n\nTopics spanned spiking neural networks for neuromorphic hardware, swarm intelligence for autonomous urban drones, and multi-objective evolutionary design. Three Outstanding Student Paper Awards were presented during the closing ceremony."
+    },
+    {
+      "id": "evt-2026-spring-neural-seminar",
+      "title": "Spring Technical Seminar: Graph Neural Networks & Complex Dynamical Systems",
+      "date": "2026-04-22",
+      "time": "15:00 - 18:00 BST",
+      "location": "The Alan Turing Institute, British Library, London NW1 2DB",
+      "category": "Technical Seminar",
+      "status": "past",
+      "speaker": "Dr. Pietro Liò & London Graph Learning Research Group",
+      "registrationUrl": "",
+      "image": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1000&q=80",
+      "summary": "Deep-dive seminar on geometric deep learning, spatio-temporal graph neural networks, and applications to London transport and smart grid optimization.",
+      "content": "Hosted in collaboration with peers at The Alan Turing Institute, this seminar explored theoretical advances in message-passing neural networks, topological deep learning, and scalable graph transformers applied to real-world urban infrastructure."
+    }
+  ],
+  "topics": [
+    {
+      "id": "topic-neural-learning",
+      "title": "Deep Learning, Neural Architectures & Neuromorphic Computing",
+      "category": "Neural Networks",
+      "lead": "Neural Networks Technical Committee (London Working Group)",
+      "date": "2026-10-15",
+      "readTime": "6 min read",
+      "tags": ["Neural Networks", "Foundation Models", "Spiking Neural Nets", "IEEE TNNLS"],
+      "summary": "Investigating next-generation neural architectures, continual learning, neuromorphic spiking systems, and theoretical foundations of deep representation learning.",
+      "content": "As one of the three foundational pillars of the IEEE Computational Intelligence Society, our London Neural Networks working group focuses on bridging theoretical neuroscience, mathematical foundations of deep learning, and energy-efficient hardware deployment.\n\n### Current Research Priorities\n1. **Continual & Lifelong Learning**: Overcoming catastrophic forgetting in non-stationary environments.\n2. **Neuromorphic & Spiking Neural Networks (SNNs)**: Event-driven computation for ultra-low-power edge intelligence.\n3. **Physics-Informed & Geometric Neural Networks**: Embedding domain symmetries and physical conservation laws into neural architectures.\n\n### How to Get Involved\nWe organize bi-monthly reading groups and joint special sessions for IJCNN and IEEE Transactions on Neural Networks and Learning Systems (TNNLS). Contact the working group chair to propose a seminar topic.",
+      "externalLink": "https://cis.ieee.org/publications/t-neural-networks-and-learning-systems"
+    },
+    {
+      "id": "topic-evolutionary-computation",
+      "title": "Evolutionary Computation, Swarm Intelligence & Automated ML",
+      "category": "Evolutionary Computation",
+      "lead": "Evolutionary Computation Technical Force",
+      "date": "2026-10-10",
+      "readTime": "5 min read",
+      "tags": ["Evolutionary Algorithms", "Multi-Objective Optimization", "NAS", "IEEE TEVC"],
+      "summary": "Harnessing Darwinian evolution and collective swarm behavior for black-box optimization, Neural Architecture Search (NAS), and evolutionary prompt engineering.",
+      "content": "London and the broader UK have a rich heritage in Evolutionary Computation. Our chapter actively advances population-based metaheuristics, genetic programming, and multi-objective optimization.\n\n### Key Focus Areas\n1. **Evolutionary Neural Architecture Search (ENAS) & AutoML**: Automatically discovering compact, high-performing deep architectures.\n2. **Many-Objective & Dynamic Optimization**: Solving complex real-world engineering, logistics, and sustainable energy scheduling problems.\n3. **Synergy of LLMs and Evolutionary Search**: Using evolutionary algorithms to guide code synthesis, heuristic discovery, and agentic reasoning.\n\nMembers regularly contribute to the IEEE Congress on Evolutionary Computation (CEC) and IEEE Transactions on Evolutionary Computation (TEVC).",
+      "externalLink": "https://cis.ieee.org/publications/t-evolutionary-computation"
+    },
+    {
+      "id": "topic-fuzzy-explainable-ai",
+      "title": "Fuzzy Systems, Uncertainty Quantification & Trustworthy AI",
+      "category": "Fuzzy Systems & XAI",
+      "lead": "Fuzzy Systems & Explainable AI Cluster",
+      "date": "2026-09-28",
+      "readTime": "7 min read",
+      "tags": ["Fuzzy Logic", "Explainable AI", "Uncertainty", "IEEE TFS"],
+      "summary": "Computing with words, human-centric interpretable rule bases, Type-2 fuzzy logic, and hybrid neuro-fuzzy reasoning for safety-critical systems.",
+      "content": "As AI regulations in the UK and Europe increasingly demand transparency and accountability, Fuzzy Systems play a vital role in translating complex numerical data into human-understandable linguistic rules.\n\n### Core Themes\n1. **Neuro-Fuzzy Hybrid Systems**: Combining the learning power of deep neural networks with the transparent reasoning of fuzzy rule bases.\n2. **Interval & General Type-2 Fuzzy Logic**: Modeling higher-order epistemic and aleatoric uncertainty in noisy sensor environments.\n3. **Human-in-the-Loop Decision Support**: Applications in finance, autonomous driving safety validation, and medical diagnostics.",
+      "externalLink": "https://cis.ieee.org/publications/t-fuzzy-systems"
+    },
+    {
+      "id": "topic-agentic-ai-ethics",
+      "title": "Emerging Topic: Cognitive & Agentic Systems in Financial and Urban Ecosystems",
+      "category": "Emerging Topics",
+      "lead": "Industry & FinTech Liaison Group (City of London)",
+      "date": "2026-10-18",
+      "readTime": "5 min read",
+      "tags": ["Agentic AI", "Computational Finance", "Smart Cities", "AI Safety"],
+      "summary": "Bridging academic computational intelligence with London's world-leading financial district and smart infrastructure initiatives.",
+      "content": "Uniquely positioned in London, our chapter fosters close collaboration between university laboratories and R&D teams in the City of London, Canary Wharf, and Knowledge Quarter (King's Cross).\n\n### Active Initiatives\n• **Computational Intelligence for Quantitative Finance**: Evolutionary portfolio optimization, market microstructure simulation, and anomaly detection.\n• **Resilient Urban Systems**: Multi-agent reinforcement learning for traffic flow, electric vehicle grid balancing, and climate resilience.\n• **Algorithmic Fairness & Governance**: Ensuring computational intelligence aligns with IEEE Ethically Aligned Design standards.",
+      "externalLink": "https://cis.ieee.org/"
+    }
+  ],
+  "gallery": [
+    {
+      "id": "photo-1",
+      "title": "Keynote Address at Imperial College London",
+      "caption": "Opening keynote on Nature-Inspired AI at the IEEE CIS London Annual Symposium with over 180 attendees.",
+      "eventTag": "Annual Symposium",
+      "date": "2026-09-12",
+      "url": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "photo-2",
+      "title": "PhD & Young Professionals Poster Spotlight",
+      "caption": "Early-career researchers discussing spiking neural networks and evolutionary optimization during the poster session at KCL.",
+      "eventTag": "Young Professionals",
+      "date": "2026-07-15",
+      "url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "photo-3",
+      "title": "Roundtable on Explainable AI & UK AI Safety",
+      "caption": "Panel discussion featuring academic chairs and industry leads at University College London (UCL).",
+      "eventTag": "Distinguished Lecture",
+      "date": "2026-06-20",
+      "url": "https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "photo-4",
+      "title": "London Knowledge Quarter Networking Reception",
+      "caption": "IEEE CIS members and visiting scholars networking after the Graph Neural Networks seminar near King's Cross.",
+      "eventTag": "Technical Seminar",
+      "date": "2026-04-22",
+      "url": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "photo-5",
+      "title": "Hands-On Evolutionary Computation Hackathon",
+      "caption": "Student teams competing in the multi-objective optimization challenge hosted in central London.",
+      "eventTag": "Workshop",
+      "date": "2026-03-14",
+      "url": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "photo-6",
+      "title": "London Chapter Executive Committee Strategy Meeting",
+      "caption": "Planning the 2026–2027 technical program and student travel grant initiatives along the Thames.",
+      "eventTag": "Committee",
+      "date": "2026-02-08",
+      "url": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=80"
+    }
+  ],
+  "committee": [
+    {
+      "id": "mem-1",
+      "name": "Prof. Eleanor Vance",
+      "role": "Chapter Chair",
+      "affiliation": "Imperial College London",
+      "bio": "Professor of Computational Intelligence, focusing on evolutionary multi-objective optimization and neural architecture design."
+    },
+    {
+      "id": "mem-2",
+      "name": "Dr. Arthur Pendelton",
+      "role": "Vice Chair & Technical Program Lead",
+      "affiliation": "University College London (UCL)",
+      "bio": "Associate Professor in Machine Learning & Explainable Fuzzy Systems; Associate Editor of IEEE TFS."
+    },
+    {
+      "id": "mem-3",
+      "name": "Dr. Sankun Liu",
+      "role": "Secretary & Webmaster",
+      "affiliation": "IEEE CIS London Section Committee",
+      "bio": "Leading digital infrastructure, academic outreach, and interdisciplinary Computational Intelligence events across London."
+    },
+    {
+      "id": "mem-4",
+      "name": "Dr. Priya Patel",
+      "role": "Treasurer & Industry Liaison",
+      "affiliation": "King's College London",
+      "bio": "Bridging neuromorphic computing and intelligent multi-agent systems with London's technology and financial sectors."
+    },
+    {
+      "id": "mem-5",
+      "name": "Dr. Marcus Chen",
+      "role": "Student & Young Professionals Coordinator",
+      "affiliation": "Queen Mary University of London",
+      "bio": "Organizing PhD colloquia, summer schools, and mentorship programs for student branches across Greater London."
+    }
+  ]
+}
