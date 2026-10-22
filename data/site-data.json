@@ -8,7 +8,7 @@
     "announcement": "📢 Call for Participation: 2026 IEEE CIS London Autumn Symposium on Neuro-Symbolic & Agentic AI at Imperial College London — Registration is now open!",
     "contactEmail": "london-cis@ieee-ukandireland.org",
     "location": "London, United Kingdom (IEEE Region 8 • UK & Ireland Section)",
-    "githubRepo": "sankunliu/IEEE_London_CIS_section",
+    "githubRepo": "IEEE-CIS-London/IEEE-CIS-London.github.io",
     "githubBranch": "main",
     "stats": [
       { "value": "450+", "label": "Active CIS Members" },
@@ -27,7 +27,7 @@
       "category": "Symposium",
       "status": "upcoming",
       "speaker": "Prof. Yaochu Jin (IEEE Fellow) & Dr. Marta Garnelo (DeepMind London)",
-      "registrationUrl": "#contact",
+      "registrationUrl": "#register",
       "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80",
       "summary": "Our flagship annual symposium bringing together leading AI scientists across London to explore the synergy between Large Language Models, Evolutionary Optimization, and Multi-Agent Systems.",
       "content": "The 2026 IEEE CIS London Autumn Symposium is our premier annual gathering for academics, PhD researchers, and industry practitioners across Greater London.\n\nKey Highlights:\n• Morning Keynote: Evolutionary Optimization in the Era of Large Foundation Models\n• Afternoon Panel: Safe, Interpretable, and Energy-Efficient Computational Intelligence\n• Early-Career & PhD Poster Spotlight Session (Best Poster Award sponsored by IEEE CIS)\n• Evening Networking Reception with IEEE UK & Ireland Section leaders."
@@ -41,7 +41,7 @@
       "category": "Distinguished Lecture",
       "status": "upcoming",
       "speaker": "Prof. Christian Wagner & UCL Centre for Artificial Intelligence",
-      "registrationUrl": "#contact",
+      "registrationUrl": "#register",
       "image": "https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=1000&q=80",
       "summary": "An interactive technical workshop examining how interpretable fuzzy inference systems and neuro-fuzzy architectures enable trustworthy clinical decision support in NHS trials.",
       "content": "Trustworthiness and interpretability remain critical barriers to deploying black-box deep learning models in high-stakes healthcare environments.\n\nIn this IEEE CIS Distinguished Lecture hosted at UCL, we explore how modern Type-2 Fuzzy Systems combined with deep representation learning provide transparent, uncertainty-aware clinical predictions. Hands-on Python notebooks and benchmark datasets will be shared with all attendees."
@@ -181,35 +181,46 @@
       "name": "Prof. Eleanor Vance",
       "role": "Chapter Chair",
       "affiliation": "Imperial College London",
-      "bio": "Professor of Computational Intelligence, focusing on evolutionary multi-objective optimization and neural architecture design."
+      "bio": "Professor of Computational Intelligence, focusing on evolutionary multi-objective optimization and neural architecture design.",
+      "profileUrl": "https://www.imperial.ac.uk/computing",
+      "email": "e.vance@imperial.ac.uk"
     },
     {
       "id": "mem-2",
       "name": "Dr. Arthur Pendelton",
       "role": "Vice Chair & Technical Program Lead",
       "affiliation": "University College London (UCL)",
-      "bio": "Associate Professor in Machine Learning & Explainable Fuzzy Systems; Associate Editor of IEEE TFS."
+      "bio": "Associate Professor in Machine Learning & Explainable Fuzzy Systems; Associate Editor of IEEE TFS.",
+      "profileUrl": "https://www.ucl.ac.uk/computer-science",
+      "email": "a.pendelton@ucl.ac.uk"
     },
     {
       "id": "mem-3",
       "name": "Dr. Sankun Liu",
       "role": "Secretary & Webmaster",
       "affiliation": "IEEE CIS London Section Committee",
-      "bio": "Leading digital infrastructure, academic outreach, and interdisciplinary Computational Intelligence events across London."
+      "bio": "Leading digital infrastructure, academic outreach, and interdisciplinary Computational Intelligence events across London.",
+      "profileUrl": "https://github.com/IEEE-CIS-London",
+      "email": "w1996246@163.com"
     },
     {
       "id": "mem-4",
       "name": "Dr. Priya Patel",
       "role": "Treasurer & Industry Liaison",
       "affiliation": "King's College London",
-      "bio": "Bridging neuromorphic computing and intelligent multi-agent systems with London's technology and financial sectors."
+      "bio": "Bridging neuromorphic computing and intelligent multi-agent systems with London's technology and financial sectors.",
+      "profileUrl": "https://www.kcl.ac.uk/informatics",
+      "email": "priya.patel@kcl.ac.uk"
     },
     {
       "id": "mem-5",
       "name": "Dr. Marcus Chen",
       "role": "Student & Young Professionals Coordinator",
       "affiliation": "Queen Mary University of London",
-      "bio": "Organizing PhD colloquia, summer schools, and mentorship programs for student branches across Greater London."
+      "bio": "Organizing PhD colloquia, summer schools, and mentorship programs for student branches across Greater London.",
+      "profileUrl": "https://www.qmul.ac.uk/eecs",
+      "email": "marcus.chen@qmul.ac.uk"
     }
-  ]
+  ],
+  "registrations": []
 }

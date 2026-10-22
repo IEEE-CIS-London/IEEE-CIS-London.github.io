@@ -111,15 +111,21 @@ function renderEvents() {
   const container = document.getElementById('events-grid');
   if (!container) return;
 
+  const query = (document.getElementById('event-search')?.value || '').trim().toLowerCase();
+
   const events = (siteData.events || []).filter(evt => {
-    if (currentEventFilter === 'all') return true;
-    return evt.status === currentEventFilter;
+    if (currentEventFilter !== 'all' && evt.status !== currentEventFilter) return false;
+    if (query) {
+      const hay = `${evt.title} ${evt.summary} ${evt.location} ${evt.speaker} ${evt.category}`.toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    return true;
   });
 
   if (events.length === 0) {
     container.innerHTML = `
       <div style="grid-column: 1/-1; text-align:center; padding: 48px; background:#fff; border-radius:12px; border:1px solid var(--border-color);">
-        <p style="color:var(--text-secondary); font-size:1rem;">No events match the selected filter.</p>
+        <p style="color:var(--text-secondary); font-size:1rem;">No events match the selected filter or search query.</p>
       </div>
     `;
     return;
@@ -151,12 +157,17 @@ function renderEvents() {
           <h3 class="event-title">${escapeHtml(evt.title)}</h3>
           <p class="event-summary">${escapeHtml(evt.summary)}</p>
           <div class="event-footer">
-            <button class="btn btn-outline btn-sm" onclick="openEventDetail('${escapeHtml(evt.id)}')">
-              Read Full Details
-            </button>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn btn-outline btn-sm" onclick="openEventDetail('${escapeHtml(evt.id)}')">
+                Details
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="downloadEventIcs('${escapeHtml(evt.id)}')" title="Export .ics Calendar">
+                📆 .ics
+              </button>
+            </div>
             <div style="display:flex; gap:6px;">
-              ${isUpcoming && evt.registrationUrl ? `
-                <a href="${escapeHtml(evt.registrationUrl)}" class="btn btn-primary btn-sm">Register</a>
+              ${isUpcoming ? `
+                <button class="btn btn-primary btn-sm" onclick="openRegisterModal('${escapeHtml(evt.id)}')">Register</button>
               ` : ''}
               ${isAdminLoggedIn ? `
                 <button class="btn btn-outline btn-sm" onclick="editEventById('${escapeHtml(evt.id)}')" title="Edit Event">✏️</button>
@@ -194,20 +205,120 @@ function openEventDetail(eventId) {
       ${evt.speaker ? `<p><strong>🎙️ Featured Speaker(s):</strong> ${escapeHtml(evt.speaker)}</p>` : ''}
     </div>
     <div style="white-space:pre-line; line-height:1.75; color:var(--text-primary); font-size:0.96rem; margin-bottom:24px;">${escapeHtml(evt.content || evt.summary)}</div>
-    ${evt.status === 'upcoming' && evt.registrationUrl ? `
-      <a href="${escapeHtml(evt.registrationUrl)}" onclick="closeDetailModal()" class="btn btn-primary">Register / Inquire to Attend</a>
-    ` : ''}
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      ${evt.status === 'upcoming' ? `
+        <button onclick="closeDetailModal(); openRegisterModal('${escapeHtml(evt.id)}')" class="btn btn-primary">Register Now</button>
+      ` : ''}
+      <button onclick="downloadEventIcs('${escapeHtml(evt.id)}')" class="btn btn-outline">📆 Download .ics Calendar</button>
+    </div>
   `;
   document.getElementById('detail-modal').classList.add('open');
+}
+
+function openRegisterModal(eventId) {
+  const evt = (siteData.events || []).find(e => e.id === eventId);
+  if (!evt) return;
+  document.getElementById('reg-event-id').value = evt.id;
+  document.getElementById('reg-event-summary').innerHTML = `
+    <strong>${escapeHtml(evt.title)}</strong><br/>
+    <span style="color:var(--text-secondary);">📅 ${formatDate(evt.date)} • 📍 ${escapeHtml(evt.location)}</span>
+  `;
+  document.getElementById('register-form').style.display = 'block';
+  document.getElementById('register-confirmation').style.display = 'none';
+  document.getElementById('register-modal').classList.add('open');
+}
+
+function closeRegisterModal() {
+  document.getElementById('register-modal').classList.remove('open');
+}
+
+function submitEventRegistration(e) {
+  e.preventDefault();
+  const eventId = document.getElementById('reg-event-id').value;
+  const evt = (siteData.events || []).find(item => item.id === eventId) || { id: eventId, title: 'IEEE CIS London Event' };
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const affiliation = document.getElementById('reg-affil').value.trim();
+  const ieeeNumber = document.getElementById('reg-ieee').value.trim();
+
+  const ticketId = `CIS-LON-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}`;
+  if (!Array.isArray(siteData.registrations)) siteData.registrations = [];
+  siteData.registrations.unshift({
+    ticketId,
+    eventId: evt.id,
+    eventTitle: evt.title,
+    name,
+    email,
+    affiliation,
+    ieeeNumber,
+    registeredAt: new Date().toISOString()
+  });
+  saveDataLocally();
+
+  document.getElementById('register-form').reset();
+  document.getElementById('register-form').style.display = 'none';
+  const conf = document.getElementById('register-confirmation');
+  conf.style.display = 'block';
+  conf.innerHTML = `
+    <div style="font-size:2.4rem; margin-bottom:8px;">✅</div>
+    <h4 style="font-size:1.25rem; font-weight:800; color:var(--ieee-navy); margin-bottom:6px;">Registration Confirmed!</h4>
+    <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:14px;">
+      Ticket Reference: <code style="background:#EDF2F7; padding:3px 8px; border-radius:4px; font-weight:700;">${escapeHtml(ticketId)}</code>
+    </p>
+    <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="downloadEventIcs('${escapeHtml(evt.id)}')">📆 Add to Calendar (.ics)</button>
+      <button class="btn btn-outline btn-sm" onclick="closeRegisterModal()">Done</button>
+    </div>
+  `;
+  showToast(`Registered! Ticket: ${ticketId}`);
+}
+
+function downloadEventIcs(eventId) {
+  const evt = (siteData.events || []).find(e => e.id === eventId);
+  if (!evt) return;
+  const dtStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const cleanDate = (evt.date || '2026-11-18').replace(/-/g, '');
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//IEEE Computational Intelligence Society//London Section//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:evt-${evt.id}@ieee-cis-london.org`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART:${cleanDate}T093000Z`,
+    `DTEND:${cleanDate}T173000Z`,
+    `SUMMARY:${evt.title}`,
+    `DESCRIPTION:${(evt.summary || '').replace(/\n/g, '\\n')}`,
+    `LOCATION:${evt.location || 'London, United Kingdom'}`,
+    'STATUS:CONFIRMED',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${evt.id}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function renderTopics() {
   const container = document.getElementById('topics-grid');
   if (!container) return;
 
+  const query = (document.getElementById('topic-search')?.value || '').trim().toLowerCase();
+
   const topics = (siteData.topics || []).filter(t => {
-    if (currentTopicFilter === 'all') return true;
-    return t.category === currentTopicFilter;
+    if (currentTopicFilter !== 'all' && t.category !== currentTopicFilter) return false;
+    if (query) {
+      const hay = `${t.title} ${t.summary} ${t.lead} ${(t.tags || []).join(' ')}`.toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    return true;
   });
 
   container.innerHTML = topics.map(t => `
@@ -355,7 +466,7 @@ function closeLightbox() {
 }
 
 // ==========================================
-// 4. EXECUTIVE COMMITTEE RENDERER
+// 4. EXECUTIVE COMMITTEE RENDERER (Direct Profile Link + Email Mailto)
 // ==========================================
 function renderCommittee() {
   const container = document.getElementById('committee-grid');
@@ -370,13 +481,31 @@ function renderCommittee() {
       .slice(0, 2)
       .toUpperCase();
 
+    const profileUrl = m.profileUrl || 'https://cis.ieee.org';
+    const email = m.email || 'london-cis@ieee-ukandireland.org';
+
     return `
-      <div class="member-card">
+      <div class="member-card" style="display:flex; flex-direction:column;">
         <div class="member-avatar">${escapeHtml(initials)}</div>
         <div class="member-role">${escapeHtml(m.role)}</div>
-        <h3 class="member-name">${escapeHtml(m.name)}</h3>
+        <h3 class="member-name">
+          <a href="${escapeHtml(profileUrl)}" target="_blank" rel="noopener noreferrer" style="color:inherit;">
+            ${escapeHtml(m.name)} ↗
+          </a>
+        </h3>
         <div class="member-affil">${escapeHtml(m.affiliation)}</div>
-        <p class="member-bio">${escapeHtml(m.bio)}</p>
+        <p class="member-bio" style="flex:1; margin-bottom:16px;">${escapeHtml(m.bio)}</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--border-color);">
+          <a href="${escapeHtml(profileUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="flex:1;">
+            🔗 Profile ↗
+          </a>
+          <a href="mailto:${escapeHtml(email)}" class="btn btn-primary btn-sm" style="flex:1;">
+            ✉️ Email
+          </a>
+          ${isAdminLoggedIn ? `
+            <button class="btn btn-outline btn-sm" onclick="editCommitteeMember('${escapeHtml(m.id)}')" title="Edit Member">✏️</button>
+          ` : ''}
+        </div>
       </div>
     `;
   }).join('');
@@ -429,6 +558,7 @@ function setAdminState(loggedIn) {
     renderEvents();
     renderTopics();
     renderGallery();
+    renderCommittee();
   }
 }
 
@@ -568,14 +698,18 @@ function renderAdminLists() {
       <div class="admin-list-item">
         <div>
           <div style="font-weight:700; color:var(--ieee-navy);">${escapeHtml(m.name)} — <span style="color:var(--ieee-blue);">${escapeHtml(m.role)}</span></div>
-          <div style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(m.affiliation)}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted);">
+            ${escapeHtml(m.affiliation)} • 🔗 <a href="${escapeHtml(m.profileUrl)}" target="_blank" rel="noopener">${escapeHtml(m.profileUrl)}</a> • ✉️ ${escapeHtml(m.email)}
+          </div>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="deleteCommitteeMember('${escapeHtml(m.id)}')">Remove</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="editCommitteeMember('${escapeHtml(m.id)}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCommitteeMember('${escapeHtml(m.id)}')">Remove</button>
+        </div>
       </div>
     `).join('');
   }
 
-  // Default today's date in photo upload form if empty
   const galDate = document.getElementById('gal-date');
   if (galDate && !galDate.value) {
     galDate.value = new Date().toISOString().split('T')[0];
@@ -800,7 +934,7 @@ function deleteTopicById(id) {
   showToast('Topic deleted.');
 }
 
-// --- Site Meta & Committee CRUD ---
+// --- Site Meta & Committee CRUD (with profileUrl & email) ---
 function saveSiteMeta(e) {
   e.preventDefault();
   siteData.siteMeta.announcement = document.getElementById('meta-announcement').value.trim();
@@ -814,16 +948,49 @@ function saveSiteMeta(e) {
 
 function saveCommitteeMember(e) {
   e.preventDefault();
-  siteData.committee.push({
-    id: 'mem-' + Date.now(),
+  const id = document.getElementById('mem-id').value || ('mem-' + Date.now());
+  const memberObj = {
+    id,
     name: document.getElementById('mem-name').value.trim(),
     role: document.getElementById('mem-role').value.trim(),
     affiliation: document.getElementById('mem-affil').value.trim(),
+    profileUrl: document.getElementById('mem-profile').value.trim(),
+    email: document.getElementById('mem-email').value.trim(),
     bio: document.getElementById('mem-bio').value.trim()
-  });
-  e.target.reset();
+  };
+
+  const idx = siteData.committee.findIndex(m => m.id === id);
+  if (idx >= 0) {
+    siteData.committee[idx] = memberObj;
+    showToast('Committee member updated!');
+  } else {
+    siteData.committee.push(memberObj);
+    showToast('Committee member added!');
+  }
+
+  resetCommitteeForm();
   saveDataLocally();
-  showToast('Committee member added!');
+}
+
+function editCommitteeMember(id) {
+  const m = siteData.committee.find(item => item.id === id);
+  if (!m) return;
+  openAdminTab('committee');
+  setValue('mem-id', m.id);
+  setValue('mem-name', m.name);
+  setValue('mem-role', m.role);
+  setValue('mem-affil', m.affiliation);
+  setValue('mem-profile', m.profileUrl || '');
+  setValue('mem-email', m.email || '');
+  setValue('mem-bio', m.bio || '');
+  document.getElementById('mem-submit-btn').textContent = 'Update Committee Member';
+  document.getElementById('committee-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetCommitteeForm() {
+  document.getElementById('committee-form').reset();
+  setValue('mem-id', '');
+  document.getElementById('mem-submit-btn').textContent = 'Save Committee Member';
 }
 
 function deleteCommitteeMember(id) {
@@ -836,7 +1003,7 @@ function deleteCommitteeMember(id) {
 // 7. GITHUB PAGES CLOUD SYNC (LIVE PUBLISH)
 // ==========================================
 async function syncToGitHubCloud() {
-  const repo = (document.getElementById('sync-repo')?.value || siteData.siteMeta?.githubRepo || 'sankunliu/IEEE_London_CIS_section').trim();
+  const repo = (document.getElementById('sync-repo')?.value || siteData.siteMeta?.githubRepo || 'IEEE-CIS-London/IEEE-CIS-London.github.io').trim();
   const branch = (document.getElementById('sync-branch')?.value || siteData.siteMeta?.githubBranch || 'main').trim();
   const token = (document.getElementById('sync-token')?.value || localStorage.getItem(STORAGE_KEY_GH_TOKEN) || '').trim();
   const statusEl = document.getElementById('sync-status-msg');
@@ -860,7 +1027,6 @@ async function syncToGitHubCloud() {
     }
     showToast('Publishing changes to GitHub Pages...');
 
-    // 1. Upload any base64 images in gallery or events to uploads/ folder in the repo
     for (const photo of siteData.gallery) {
       if (photo.url && photo.url.startsWith('data:image/')) {
         const uploadedPath = await uploadBase64ImageToGitHub(repo, branch, token, photo.url, `uploads/gallery-${photo.id}.jpg`);
@@ -875,7 +1041,6 @@ async function syncToGitHubCloud() {
       }
     }
 
-    // 2. Commit updated data/site-data.json to GitHub
     const filePath = 'data/site-data.json';
     const apiUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
 
@@ -983,6 +1148,26 @@ function exportSiteDataJson() {
   showToast('Downloaded site-data.json backup.');
 }
 
+function importSiteDataJson(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!imported.siteMeta || !Array.isArray(imported.events) || !Array.isArray(imported.committee)) {
+        throw new Error('Invalid site-data.json structure');
+      }
+      siteData = imported;
+      saveDataLocally();
+      showToast('✅ Imported site-data.json backup successfully!');
+    } catch (err) {
+      showToast(`❌ Import failed: ${err.message}`);
+    }
+  };
+  reader.readAsText(file);
+}
+
 function resetLocalChanges() {
   if (!confirm('Discard unsynced browser edits and reload from the server?')) return;
   localStorage.removeItem(STORAGE_KEY_DATA);
@@ -1075,6 +1260,20 @@ function setupKeyboardShortcuts() {
       if (e.key === 'Escape') closeLightbox();
     }
   });
+
+  // Mobile Touch Swipe Support for Lightbox
+  const touchArea = document.getElementById('lightbox-touch-area');
+  if (touchArea) {
+    let touchStartX = 0;
+    touchArea.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    touchArea.addEventListener('touchend', e => {
+      const touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX - touchStartX > 45) stepLightbox(-1);
+      if (touchStartX - touchEndX > 45) stepLightbox(1);
+    }, { passive: true });
+  }
 }
 
 // ==========================================

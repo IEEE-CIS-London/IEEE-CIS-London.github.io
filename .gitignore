@@ -1,0 +1,23 @@
+# Teamwork & Agent Scratch Directories
+.agents/
+
+# Environment & Secrets
+.env
+.env.*
+*token*
+*.pem
+*.key
+
+# Dependencies & Build
+node_modules/
+dist/
+.cache/
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*~
+.vscode/
+.idea/

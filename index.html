@@ -164,7 +164,8 @@
             Join our Distinguished Lectures, technical workshops, PhD colloquia, and networking receptions hosted across London universities.
           </p>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <input type="search" id="event-search" class="form-control" style="width: 210px; padding: 7px 12px; font-size: 0.85rem;" placeholder="🔍 Search events..." oninput="renderEvents()" />
           <div class="filter-tabs" id="event-filters">
             <button class="filter-btn active" onclick="filterEvents('all', this)">All Events</button>
             <button class="filter-btn" onclick="filterEvents('upcoming', this)">Upcoming</button>
@@ -193,7 +194,8 @@
             Explore our thematic working groups, position papers, reading groups, and collaborative research tracks in Computational Intelligence.
           </p>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <input type="search" id="topic-search" class="form-control" style="width: 200px; padding: 7px 12px; font-size: 0.85rem;" placeholder="🔍 Search topics..." oninput="renderTopics()" />
           <div class="filter-tabs" id="topic-filters">
             <button class="filter-btn active" onclick="filterTopics('all', this)">All Topics</button>
             <button class="filter-btn" onclick="filterTopics('Neural Networks', this)">Neural Networks</button>
@@ -248,7 +250,7 @@
           <span class="section-eyebrow">Leadership &amp; Governance</span>
           <h2 class="section-title">Executive Committee</h2>
           <p class="section-subtitle">
-            Dedicated volunteers from London's academic and research community steering the IEEE CIS London Section Chapter.
+            Dedicated volunteers from London's academic and research community steering the IEEE CIS London Section Chapter. Click on a member's profile link or email to connect directly.
           </p>
         </div>
         <button class="btn btn-primary btn-sm admin-only-btn" style="display:none;" onclick="openAdminTab('committee')">
@@ -373,6 +375,40 @@
     </div>
   </div>
 
+  <!-- Interactive Event Registration Modal -->
+  <div class="modal-backdrop" id="register-modal" onclick="if(event.target===this) closeRegisterModal()">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 id="register-modal-title">Event Registration</h3>
+        <button class="modal-close" onclick="closeRegisterModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="register-form" onsubmit="submitEventRegistration(event)">
+          <input type="hidden" id="reg-event-id" />
+          <div id="reg-event-summary" style="background:#F8FAFC; padding:12px 16px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:16px; font-size:0.88rem;"></div>
+          <div class="form-group">
+            <label for="reg-name">Full Name *</label>
+            <input type="text" id="reg-name" class="form-control" required placeholder="e.g., Dr. Jane Smith" />
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Academic / Work Email *</label>
+            <input type="email" id="reg-email" class="form-control" required placeholder="jane.smith@imperial.ac.uk" />
+          </div>
+          <div class="form-group">
+            <label for="reg-affil">University / Organization *</label>
+            <input type="text" id="reg-affil" class="form-control" required placeholder="e.g., Imperial College London" />
+          </div>
+          <div class="form-group">
+            <label for="reg-ieee">IEEE / CIS Membership Number (Optional)</label>
+            <input type="text" id="reg-ieee" class="form-control" placeholder="Optional — for priority seating" />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Confirm Registration</button>
+        </form>
+        <div id="register-confirmation" style="display:none; text-align:center; padding:16px 0;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Photo Lightbox Modal -->
   <div class="modal-backdrop" id="lightbox-modal" onclick="if(event.target===this) closeLightbox()">
     <div class="modal-card" style="max-width: 920px; background: #071324; color: #fff;">
@@ -380,7 +416,7 @@
         <h3 id="lightbox-title" style="color: #fff;">Photo Preview</h3>
         <button class="modal-close" onclick="closeLightbox()">&times;</button>
       </div>
-      <div class="modal-body" style="text-align: center;">
+      <div class="modal-body" id="lightbox-touch-area" style="text-align: center;">
         <img id="lightbox-img" src="" alt="" style="max-height: 68vh; margin: 0 auto 16px; border-radius: 8px; object-fit: contain;" />
         <p id="lightbox-caption" style="color: rgba(255,255,255,0.85); font-size: 0.95rem; margin-bottom: 16px;"></p>
         <div style="display: flex; justify-content: center; gap: 12px;">
@@ -415,7 +451,7 @@
           </div>
           <h4 style="font-size: 1.35rem; font-weight: 800; color: var(--ieee-navy);">Administrator Sign In</h4>
           <p style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 4px;">
-            Sign in to publish events, upload event photography, and manage research topics.
+            Sign in to publish events, upload event photography, and manage committee links &amp; research topics.
           </p>
         </div>
 
@@ -502,7 +538,7 @@
                 </div>
                 <div class="form-group">
                   <label>Registration / Event Link (Optional)</label>
-                  <input type="text" id="evt-reg" class="form-control" placeholder="https://... or #contact" />
+                  <input type="text" id="evt-reg" class="form-control" placeholder="#register or external https://..." />
                 </div>
                 <div class="form-group full-width">
                   <label>Event Cover Image (Upload local photo or paste image URL)</label>
@@ -667,27 +703,39 @@
               <button type="submit" class="btn btn-primary">Update Site Banner &amp; Info</button>
             </form>
 
-            <h4 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px;">Add Executive Committee Member</h4>
-            <form onsubmit="saveCommitteeMember(event)" style="background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+            <h4 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px;">Add or Edit Executive Committee Member</h4>
+            <form id="committee-form" onsubmit="saveCommitteeMember(event)" style="background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+              <input type="hidden" id="mem-id" />
               <div class="form-grid">
                 <div class="form-group">
                   <label>Full Name &amp; Title *</label>
-                  <input type="text" id="mem-name" class="form-control" required placeholder="e.g., Prof. Alan Davies" />
+                  <input type="text" id="mem-name" class="form-control" required placeholder="e.g., Prof. Eleanor Vance" />
                 </div>
                 <div class="form-group">
                   <label>Chapter Role *</label>
-                  <input type="text" id="mem-role" class="form-control" required placeholder="e.g., Chapter Chair / Publicity Lead" />
+                  <input type="text" id="mem-role" class="form-control" required placeholder="e.g., Chapter Chair" />
                 </div>
                 <div class="form-group full-width">
                   <label>University / Affiliation *</label>
                   <input type="text" id="mem-affil" class="form-control" required placeholder="e.g., Imperial College London" />
+                </div>
+                <div class="form-group">
+                  <label>Personal Profile / Homepage Link (`profileUrl`) *</label>
+                  <input type="url" id="mem-profile" class="form-control" required placeholder="https://www.imperial.ac.uk/people/..." />
+                </div>
+                <div class="form-group">
+                  <label>Email Address (`mailto:`) *</label>
+                  <input type="email" id="mem-email" class="form-control" required placeholder="e.vance@imperial.ac.uk" />
                 </div>
                 <div class="form-group full-width">
                   <label>Short Bio *</label>
                   <input type="text" id="mem-bio" class="form-control" required placeholder="Research focus and IEEE responsibilities" />
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary">Add Committee Member</button>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" id="mem-submit-btn">Save Committee Member</button>
+                <button type="button" class="btn btn-outline" onclick="resetCommitteeForm()">Clear Form</button>
+              </div>
             </form>
 
             <div id="admin-committee-list"></div>
@@ -700,13 +748,13 @@
                 ☁️ Live GitHub Pages Cloud Synchronization
               </h4>
               <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
-                This website is hosted on GitHub Pages (<code>sankunliu/IEEE_London_CIS_section</code>). By entering your GitHub Personal Access Token below, clicking <strong>"Publish All Changes to Live Site"</strong> commits your updated events, topics, and uploaded photos directly to the GitHub repository so all visitors worldwide see your updates automatically.
+                This website is hosted on GitHub Pages (<code>IEEE-CIS-London/IEEE-CIS-London.github.io</code>) at <a href="https://ieee-cis-london.github.io/" target="_blank" rel="noopener" style="color:var(--ieee-blue); font-weight:600;">https://ieee-cis-london.github.io/</a>. By entering your GitHub Personal Access Token below, clicking <strong>"Publish All Changes to Live Site"</strong> commits your updated events, topics, committee links, and uploaded photos directly to the GitHub repository.
               </p>
 
               <div class="form-grid">
                 <div class="form-group">
                   <label>GitHub Repository (owner/repo)</label>
-                  <input type="text" id="sync-repo" class="form-control" value="sankunliu/IEEE_London_CIS_section" />
+                  <input type="text" id="sync-repo" class="form-control" value="IEEE-CIS-London/IEEE-CIS-London.github.io" />
                 </div>
                 <div class="form-group">
                   <label>Branch</label>
@@ -725,6 +773,10 @@
                 <button class="btn btn-outline" onclick="exportSiteDataJson()">
                   ⬇️ Download site-data.json Backup
                 </button>
+                <label class="btn btn-outline" style="cursor:pointer; margin:0;">
+                  ⬆️ Import site-data.json Backup
+                  <input type="file" accept=".json,application/json" style="display:none;" onchange="importSiteDataJson(this)" />
+                </label>
                 <button class="btn btn-danger" onclick="resetLocalChanges()">
                   ↺ Reset Local Cache to Default
                 </button>
@@ -740,7 +792,7 @@
 
   <!-- Floating Admin Indicator Bar -->
   <div class="admin-floating-bar" id="admin-floating-bar">
-    <span>🔓 <strong>Admin Mode Active</strong> — You can edit events, upload photos &amp; publish changes</span>
+    <span>🔓 <strong>Admin Mode Active</strong> — You can edit events, committee links, upload photos &amp; publish changes</span>
     <button class="btn btn-primary btn-sm" onclick="openAdminModal()">Open CMS</button>
     <button class="btn btn-hero-primary btn-sm" onclick="syncToGitHubCloud()">Publish Live</button>
   </div>
