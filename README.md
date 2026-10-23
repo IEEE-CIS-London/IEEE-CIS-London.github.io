@@ -1,16 +1,74 @@
-# IEEE CIS London Section — Official Website
+# IEEE CIS London Section Chapter — Website
 
-Official website for the **IEEE Computational Intelligence Society (CIS) — London Section Chapter** (`IEEE-CIS-London`).
+Website of the **IEEE Computational Intelligence Society (CIS) Chapter of the IEEE London Section**
+(London, Ontario, Canada — IEEE Canada, Region 7).
 
-🌐 **Live Official Website URL**: [https://ieee-cis-london.github.io/](https://ieee-cis-london.github.io/)
+Live site: <https://ieee-cis-london.github.io/>
 
-## Features
-- **Academic & IEEE Visual Identity**: Designed in alignment with IEEE Global & IEEE Computational Intelligence Society standards, featuring an interactive neural-network canvas hero.
-- **Chapter Events & Symposia (`#events`)**: Keyword search, filterable upcoming and past events, interactive online registration modal with ticket confirmation, and `.ics` calendar export.
-- **Research Topics & Pillars (`#topics`)**: Keyword search and pillar filters covering Neural Networks, Evolutionary Computation, Fuzzy Systems & Explainable AI (XAI), and Emerging Agentic AI topics.
-- **Event Photo Gallery (`#gallery`)**: Categorized photo wall with full-screen Lightbox preview, keyboard shortcuts, and mobile touch swipe navigation.
-- **Executive Committee (`#committee`)**: Member cards with direct external Personal Profile links (`profileUrl`) and direct Email (`mailto:`) buttons.
-- **Built-in Administrator Portal & Serverless Cloud Sync**:
-  - Click **Admin Login** in the top navigation bar (`admin` / `cis-london-2026`).
-  - Manage Events, upload local photos (automatically resized & compressed via HTML5 Canvas), publish Research Topics, and update Committee members (including their external profile URLs and email addresses).
-  - Supports **One-Click Live Publishing to GitHub Pages** via the GitHub Contents API (`IEEE-CIS-London/IEEE-CIS-London.github.io`).
+It is a plain static site (HTML/CSS/JS, no build step) served by GitHub Pages from the `main` branch.
+All changeable content lives in [`data/site-data.json`](data/site-data.json).
+
+## Updating content
+
+### Option A — Admin page (events and stats)
+
+1. Create a GitHub **fine-grained personal access token**
+   ([GitHub → Settings → Fine-grained tokens](https://github.com/settings/personal-access-tokens/new)):
+   - Resource owner: `IEEE-CIS-London`
+   - Repository access: *Only select repositories* → `ieee-cis-london.github.io`
+   - Permissions → Repository → **Contents: Read and write**
+   - Give it a short expiration.
+2. On the live site, click **Admin sign in** in the footer and paste the token.
+3. Add/edit/delete events (with optional image upload) and edit the stats strip.
+4. Click **Publish changes**. This commits `data/site-data.json` to `main`; the site updates in about a minute.
+
+There is no password in the code: GitHub checks that the token can push to this repository.
+Only people with write access to the repository can publish. The token is kept in the browser tab
+(sessionStorage) and is forgotten when the tab is closed.
+
+### Option B — Edit the JSON directly
+
+Edit `data/site-data.json` on GitHub (or locally), then run `node test/validate.js` before committing.
+
+```jsonc
+{
+  "siteMeta": {
+    "announcement": "",          // optional banner under the header; empty = hidden
+    "contactEmail": "…",         // used by all "Email the chapter" links
+    "mailingListUrl": "",        // optional sign-up link
+    "stats": [ { "value": "120+", "label": "Active CIS members" } ]  // empty values are hidden
+  },
+  "events": [
+    {
+      "id": "2026-11-18-dl-talk",          // unique, lowercase-with-dashes
+      "title": "…",
+      "date": "2026-11-18",                // YYYY-MM-DD; upcoming/past is worked out automatically
+      "startTime": "14:00",                // optional, 24h, Eastern Time
+      "endTime": "15:30",                  // optional
+      "category": "Distinguished Lecture", // optional
+      "location": "…",
+      "speaker": "…",                      // optional
+      "summary": "…",                      // shown on the card
+      "description": "…",                  // shown in the details dialog
+      "registrationUrl": "https://events.vtools.ieee.org/m/…",  // optional "Register" button
+      "image": "assets/uploads/events/…jpg"                     // optional
+    }
+  ],
+  "gallery": [
+    { "url": "assets/uploads/gallery/…jpg", "title": "…", "caption": "…", "date": "2026-11-18" }
+  ],                                       // the Gallery section only appears once it has photos
+  "committee": [
+    { "name": "…", "role": "Chair", "affiliation": "…", "profileUrl": "https://…",
+      "email": "…", "photo": "assets/img/committee/….jpg" }
+  ]
+}
+```
+
+Committee photos should be square, about 320×320 px, with metadata (EXIF/GPS) stripped.
+
+## Local preview
+
+```bash
+python3 -m http.server 8000   # then open http://localhost:8000
+node test/validate.js         # validate data and check for secrets / broken anchors
+```
