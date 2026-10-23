@@ -107,9 +107,15 @@ function renderNextEvent() {
     return;
   }
   body.innerHTML = `
+    <button class="next-event-cover" data-event-detail="${escapeHtml(next.id)}" aria-label="Details: ${escapeHtml(next.title)}">
+      <img src="${escapeHtml(coverFor(next))}" alt="" />
+      ${next.category ? `<span class="badge badge-category">${escapeHtml(next.category)}</span>` : ''}
+    </button>
     <p class="next-event-date">${escapeHtml(formatDate(next.date, { weekday: 'long' }))}${next.startTime ? ` · ${escapeHtml(formatTimeRange(next))}` : ''}</p>
     <h2 class="next-event-title">${escapeHtml(next.title)}</h2>
-    ${next.location ? `<p class="next-event-meta">${escapeHtml(next.location)}</p>` : ''}
+    ${next.location ? `<p class="next-event-meta">📍 ${escapeHtml(next.location)}</p>` : ''}
+    ${next.speaker ? `<p class="next-event-meta">🎙️ ${escapeHtml(next.speaker)}</p>` : ''}
+    ${next.summary ? `<p class="next-event-summary">${escapeHtml(next.summary)}</p>` : ''}
     <div class="next-event-actions">
       <button class="btn btn-accent btn-sm" data-event-detail="${escapeHtml(next.id)}">Details</button>
       ${registerLink(next, 'btn btn-ghost btn-sm')}
