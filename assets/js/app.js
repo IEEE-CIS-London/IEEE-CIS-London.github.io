@@ -148,7 +148,11 @@ function renderEvents() {
     } else if (state.eventView === 'past') {
       list.innerHTML = `<div class="empty"><p class="empty-title">No past events yet</p><p>Past chapter events will be archived here.</p></div>`;
     } else {
-      list.innerHTML = PLACEHOLDER_EVENTS.map((evt, i) => `
+      const adminNote = state.admin
+        ? `<p class="admin-note">These “Coming soon” cards are examples shown while there are no upcoming events.
+             Use <strong>+ New event</strong> to add a real one — the examples disappear automatically.</p>`
+        : '';
+      list.innerHTML = adminNote + PLACEHOLDER_EVENTS.map((evt, i) => `
         <article class="event-card event-card-placeholder">
           <div class="event-image-wrap">
             <img src="${DEFAULT_COVERS[i]}" alt="" loading="lazy" />
