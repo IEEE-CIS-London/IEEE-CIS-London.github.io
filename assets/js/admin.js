@@ -1,20 +1,24 @@
 /**
  * IEEE CIS London Section Chapter — admin editing.
  *
- * There is no password in this file. Admins sign in with a GitHub fine-grained token;
- * GitHub itself checks that the token can push to the repository, and "Publish" commits
- * data/site-data.json (and any uploaded images) through the GitHub Contents API.
+ * No credentials live in this file. Admins sign in either
+ *  - with a username and password, checked by the chapter's Cloudflare Worker (worker/), which
+ *    holds the GitHub token server-side and forwards only the allowed GitHub requests; or
+ *  - with their own GitHub fine-grained token, which GitHub checks directly.
+ * "Publish" commits data/site-data.json (and uploaded images) through the GitHub Contents API;
  * GitHub Pages then redeploys the site, usually within a minute.
  */
 'use strict';
 
-const ADMIN_REPO = 'IEEE-CIS-London/ieee-cis-london.github.io';
+const ADMIN_API = 'https://cis-london-admin.bigboobmilkworld.workers.dev'; // Cloudflare Worker (worker/)
+const ADMIN_REPO = 'IEEE-CIS-London/IEEE-CIS-London.github.io';
 const ADMIN_BRANCH = 'main';
 const DATA_PATH = 'data/site-data.json';
-const TOKEN_KEY = 'ieee_cis_london_admin_token';
+const SESSION_KEY = 'ieee_cis_london_admin_session';
 
 const admin = {
-  token: '',
+  mode: '',          // 'password' (via the Worker) or 'token' (direct to GitHub)
+  credential: '',    // Worker session or GitHub token
   user: '',
   dataSha: '',       // sha of data/site-data.json the edits are based on
   dirty: false,
@@ -29,20 +33,24 @@ function initAdmin() {
     if (admin.dirty) e.preventDefault();
   });
 
-  let saved = '';
-  try { saved = sessionStorage.getItem(TOKEN_KEY) || ''; } catch { /* storage unavailable */ }
-  if (saved) signIn(saved).catch(() => forgetToken());
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); } catch { /* storage unavailable */ }
+  if (saved?.credential) {
+    Object.assign(admin, { mode: saved.mode, credential: saved.credential, user: saved.user });
+    startAdmin().catch(() => forgetSession());
+  }
 }
 
-// ---------- GitHub API ----------
+// ---------- GitHub API (directly, or through the Worker) ----------
 
 async function gh(path, options = {}) {
-  const res = await fetch(`https://api.github.com${path}`, {
+  const base = admin.mode === 'password' ? `${ADMIN_API}/github` : 'https://api.github.com';
+  const res = await fetch(`${base}${path}`, {
     ...options,
     headers: {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${admin.token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
+      Authorization: `Bearer ${admin.credential}`,
+      ...(admin.mode === 'token' ? { 'X-GitHub-Api-Version': '2022-11-28' } : {}),
       ...(options.body ? { 'Content-Type': 'application/json' } : {})
     }
   });
@@ -70,27 +78,41 @@ function base64ToUtf8(b64) {
 
 // ---------- Sign in / out ----------
 
-async function signIn(token) {
-  admin.token = token;
-  const repo = await gh(`/repos/${ADMIN_REPO}`);
-  if (!repo.permissions?.push) {
-    admin.token = '';
-    throw new Error('This token cannot write to the website repository.');
-  }
+async function signInWithPassword(username, password) {
+  if (!ADMIN_API) throw new Error('Password sign-in is not set up yet. Use a GitHub token instead.');
+  if (!username || !password) throw new Error('Please enter your username and password.');
+  const res = await fetch(`${ADMIN_API}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.message || `Sign-in failed (${res.status}).`);
+  Object.assign(admin, { mode: 'password', credential: body.session, user: body.username });
+  await startAdmin();
+}
 
+async function signInWithToken(token) {
+  Object.assign(admin, { mode: 'token', credential: token, user: '' });
+  const repo = await gh(`/repos/${ADMIN_REPO}`);
+  if (!repo.permissions?.push) throw new Error('This token cannot write to the website repository.');
+  try {
+    admin.user = (await gh('/user')).login;
+  } catch {
+    admin.user = 'GitHub token'; // fine-grained tokens may not be allowed to read the profile
+  }
+  await startAdmin();
+}
+
+async function startAdmin() {
   // Edit on top of the latest committed data, not the (possibly cached) deployed copy
   const file = await gh(`/repos/${ADMIN_REPO}/contents/${DATA_PATH}?ref=${ADMIN_BRANCH}`);
   state.data = { ...state.data, ...JSON.parse(base64ToUtf8(file.content)) };
   admin.dataSha = file.sha;
 
   try {
-    const me = await gh('/user');
-    admin.user = me.login;
-  } catch {
-    admin.user = 'GitHub token'; // fine-grained tokens may not be allowed to read the profile
-  }
-
-  try { sessionStorage.setItem(TOKEN_KEY, token); } catch { /* storage unavailable */ }
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ mode: admin.mode, credential: admin.credential, user: admin.user }));
+  } catch { /* storage unavailable */ }
   state.admin = true;
   document.body.classList.add('is-admin');
   document.querySelectorAll('.admin-only').forEach(el => { el.hidden = false; });
@@ -100,14 +122,14 @@ async function signIn(token) {
   renderAll();
 }
 
-function forgetToken() {
-  admin.token = '';
-  try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* storage unavailable */ }
+function forgetSession() {
+  Object.assign(admin, { mode: '', credential: '', user: '' });
+  try { sessionStorage.removeItem(SESSION_KEY); } catch { /* storage unavailable */ }
 }
 
 function signOut() {
   if (admin.dirty && !confirm('You have unpublished changes. Sign out and discard them?')) return;
-  forgetToken();
+  forgetSession();
   admin.dirty = false;
   location.reload();
 }
@@ -154,7 +176,9 @@ async function onAdminSubmit(e) {
   submit.disabled = true;
   try {
     if (kind === 'sign-in') {
-      await signIn(form.elements.token.value.trim());
+      const token = form.elements.token.value.trim();
+      if (token) await signInWithToken(token);
+      else await signInWithPassword(form.elements.username.value.trim(), form.elements.password.value);
       form.reset();
       form.closest('dialog').close();
       toast(`Signed in as ${admin.user}. You can now edit events and stats.`);
@@ -169,8 +193,12 @@ async function onAdminSubmit(e) {
       form.closest('dialog').close();
     }
   } catch (err) {
-    if (kind === 'sign-in') forgetToken();
-    showFormError(form, err.status === 401 ? 'GitHub rejected this token (invalid or expired).' : err.message);
+    if (kind === 'sign-in') {
+      const usedToken = admin.mode === 'token';
+      forgetSession();
+      if (usedToken && err.status === 401) err.message = 'GitHub rejected this token (invalid or expired).';
+    }
+    showFormError(form, err.message);
   } finally {
     submit.disabled = false;
   }

@@ -804,6 +804,9 @@ body.is-admin { padding-bottom: 88px; }
 .field textarea { resize: vertical; }
 .field input[type="file"] { padding: 7px; }
 
+.field-gap { margin: 14px 0 18px; }
+.form-help .form-note { margin: 10px 0 0; }
+.form-help .field { margin-top: 12px; }
 .form-note { margin-bottom: 14px; color: var(--text-2); font-size: 0.92rem; }
 .form-note code, .form-help code { font-size: 0.85em; padding: 1px 5px; border-radius: 4px; background: var(--bg-alt); }
 .form-help { margin-bottom: 16px; font-size: 0.9rem; color: var(--text-2); }

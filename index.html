@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://*.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <title>IEEE CIS London Section Chapter | London, Ontario</title>
   <meta name="description" content="The IEEE Computational Intelligence Society (CIS) Chapter of the IEEE London Section in London, Ontario, Canada — talks, workshops and community for neural networks, fuzzy systems, evolutionary computation and AI." />
   <meta name="theme-color" content="#00629B" />
@@ -32,7 +32,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=202610231624" />
+  <link rel="stylesheet" href="assets/css/style.css?v=202610231639" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -358,23 +358,30 @@
         <button type="button" class="dialog-close" data-close aria-label="Close">&times;</button>
       </div>
       <div class="dialog-body">
-        <p class="form-note">
-          Sign in with a GitHub <strong>fine-grained personal access token</strong> that can write to
-          <code>IEEE-CIS-London/ieee-cis-london.github.io</code>. Only committee members with write access to the
-          repository can publish changes. The token is kept in this browser tab only and is forgotten when the tab closes.
-        </p>
+        <label class="field">
+          <span>Username</span>
+          <input name="username" autocomplete="username" spellcheck="false" autocapitalize="off" />
+        </label>
+        <label class="field field-gap">
+          <span>Password</span>
+          <input type="password" name="password" autocomplete="current-password" />
+        </label>
         <details class="form-help">
-          <summary>How to create a token</summary>
+          <summary>Sign in with your own GitHub token instead</summary>
+          <p class="form-note">
+            Committee members with write access to <code>IEEE-CIS-London/IEEE-CIS-London.github.io</code> can use a
+            GitHub <strong>fine-grained personal access token</strong>. It is kept in this browser tab only.
+          </p>
           <ol>
             <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → Settings → Fine-grained tokens</a>.</li>
-            <li>Resource owner: <strong>IEEE-CIS-London</strong>; Repository access: <strong>Only select repositories</strong> → <code>ieee-cis-london.github.io</code>.</li>
+            <li>Resource owner: <strong>IEEE-CIS-London</strong>; Repository access: <strong>Only select repositories</strong> → <code>IEEE-CIS-London.github.io</code>.</li>
             <li>Permissions → Repository → <strong>Contents: Read and write</strong>. Set a short expiration.</li>
           </ol>
+          <label class="field">
+            <span>GitHub token</span>
+            <input type="password" name="token" autocomplete="off" spellcheck="false" placeholder="github_pat_…" />
+          </label>
         </details>
-        <label class="field">
-          <span>GitHub token</span>
-          <input type="password" name="token" required autocomplete="off" spellcheck="false" placeholder="github_pat_…" />
-        </label>
         <p class="form-error" data-form-error hidden></p>
       </div>
       <div class="dialog-foot">
@@ -469,7 +476,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="assets/js/app.js?v=202610231624" defer></script>
-  <script src="assets/js/admin.js?v=202610231624" defer></script>
+  <script src="assets/js/app.js?v=202610231639" defer></script>
+  <script src="assets/js/admin.js?v=202610231639" defer></script>
 </body>
 </html>

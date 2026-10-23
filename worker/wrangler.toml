@@ -1,0 +1,18 @@
+# Cloudflare Worker: admin sign-in and GitHub publishing proxy for the chapter website.
+# Secrets (set with `npx wrangler secret put …`, never committed):
+#   GITHUB_TOKEN    fine-grained token with Contents: Read and write on the website repo
+#   ADMIN_USERS     JSON {"username": "pbkdf2$iterations$salt$hash"} — managed by add-admin.mjs
+#   SESSION_SECRET  random string used to sign session tokens
+name = "cis-london-admin"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+REPO = "IEEE-CIS-London/IEEE-CIS-London.github.io"
+ALLOWED_ORIGINS = "https://ieee-cis-london.github.io,http://localhost:8765"
+
+# At most 10 sign-in attempts per IP per minute
+[[ratelimits]]
+name = "LOGIN_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

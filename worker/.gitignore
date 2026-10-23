@@ -1,0 +1,5 @@
+# Local list of admin password hashes (uploaded to the ADMIN_USERS secret)
+.admin-users.json
+node_modules/
+.wrangler/
+.dev.vars
