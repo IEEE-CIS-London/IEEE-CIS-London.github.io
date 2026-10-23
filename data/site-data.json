@@ -22,7 +22,16 @@
       }
     ]
   },
-  "events": [],
+  "events": [
+    {
+      "id": "2026-10-30-test-test",
+      "title": "Test Test",
+      "date": "2026-10-30",
+      "startTime": "16:50",
+      "endTime": "18:54",
+      "image": "assets/uploads/events/2026-10-30-test-test-mvlg7an7.jpg"
+    }
+  ],
   "gallery": [],
   "committee": [
     {
