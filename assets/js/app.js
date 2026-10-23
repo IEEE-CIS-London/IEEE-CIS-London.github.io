@@ -8,7 +8,8 @@ const TIME_ZONE = 'America/Toronto';
 
 const state = {
   data: { siteMeta: {}, events: [], gallery: [], committee: [] },
-  eventView: 'upcoming',
+  eventView: 'all',
+  galleryFilter: 'all',
   lightboxIndex: 0,
   admin: false // set by admin.js after a verified GitHub sign-in
 };
@@ -76,9 +77,6 @@ function renderMeta() {
   document.querySelectorAll('[data-mailto]').forEach(a => {
     if (email) a.href = `mailto:${email}`;
   });
-  document.querySelectorAll('[data-email-text]').forEach(a => {
-    a.textContent = email || 'Coming soon';
-  });
 
   const listUrl = safeUrl(meta.mailingListUrl);
   if (listUrl) {
@@ -118,48 +116,95 @@ function renderNextEvent() {
     </div>`;
 }
 
+// Decorative covers for events without their own image
+const DEFAULT_COVERS = [
+  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
+  'https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=1000&q=80',
+  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1000&q=80'
+];
+
+// Shown in the events grid until real events are announced
+const PLACEHOLDER_EVENTS = [
+  { category: 'Distinguished Lecture', title: 'IEEE CIS Distinguished Lecture', summary: 'A talk by an IEEE CIS Distinguished Lecturer on recent advances in computational intelligence.' },
+  { category: 'Technical Seminar', title: 'Chapter Technical Seminar Series', summary: 'Regular seminars by local researchers on neural networks, fuzzy systems and evolutionary computation.' },
+  { category: 'Workshop', title: 'Hands-on Workshop & Student Meetup', summary: 'Tutorials, poster sessions and networking for students and young professionals.' }
+];
+
+function coverFor(evt, i = 0) {
+  return mediaUrl(evt.image) || DEFAULT_COVERS[i % DEFAULT_COVERS.length];
+}
+
 function renderEvents() {
   const list = document.getElementById('event-list');
   const { upcoming, past } = splitEvents();
-  const events = state.eventView === 'upcoming' ? upcoming : past;
+  const query = (document.getElementById('event-search')?.value || '').trim().toLowerCase();
+  const pool = state.eventView === 'upcoming' ? upcoming : state.eventView === 'past' ? past : [...upcoming, ...past];
+  const events = pool.filter(evt => !query ||
+    [evt.title, evt.summary, evt.location, evt.speaker, evt.category].join(' ').toLowerCase().includes(query));
 
   if (!events.length) {
-    list.innerHTML = state.eventView === 'upcoming'
-      ? `<div class="empty">
-           <p class="empty-title">No upcoming events announced yet</p>
-           <p>New events will be posted here and on the
-             <a href="https://events.vtools.ieee.org/" target="_blank" rel="noopener">IEEE vTools events calendar</a>.
-             Interested in speaking? <a href="#join">Contact us</a>.</p>
-         </div>`
-      : `<div class="empty"><p class="empty-title">No past events yet</p><p>Past chapter events will be archived here.</p></div>`;
+    if (query) {
+      list.innerHTML = `<div class="empty"><p class="empty-title">No events match “${escapeHtml(query)}”</p></div>`;
+    } else if (state.eventView === 'past') {
+      list.innerHTML = `<div class="empty"><p class="empty-title">No past events yet</p><p>Past chapter events will be archived here.</p></div>`;
+    } else {
+      list.innerHTML = PLACEHOLDER_EVENTS.map((evt, i) => `
+        <article class="event-card event-card-placeholder">
+          <div class="event-image-wrap">
+            <img src="${DEFAULT_COVERS[i]}" alt="" loading="lazy" />
+            <div class="event-badges">
+              <span class="badge badge-soon">Coming soon</span>
+              <span class="badge badge-category">${escapeHtml(evt.category)}</span>
+            </div>
+          </div>
+          <div class="event-body">
+            <div class="event-meta">
+              <span>📅 Date to be announced</span>
+              <span>📍 London, Ontario</span>
+            </div>
+            <h3 class="event-title">${escapeHtml(evt.title)}</h3>
+            <p class="event-summary">${escapeHtml(evt.summary)}</p>
+            <div class="event-footer">
+              <a class="btn btn-outline btn-sm" href="#join">Suggest a speaker</a>
+              <a class="btn btn-primary btn-sm" href="mailto:${escapeHtml(state.data.siteMeta?.contactEmail || '')}">Get notified</a>
+            </div>
+          </div>
+        </article>`).join('');
+    }
     return;
   }
 
-  list.innerHTML = events.map(evt => {
-    const [month, day] = dateParts(evt.date);
+  list.innerHTML = events.map((evt, i) => {
+    const isUpcoming = evt.date >= todayIso();
     return `
-      <article class="event">
-        <div class="event-date" aria-hidden="true">
-          <span class="event-month">${escapeHtml(month)}</span>
-          <span class="event-day">${escapeHtml(day)}</span>
+      <article class="event-card">
+        <div class="event-image-wrap">
+          <img src="${escapeHtml(coverFor(evt, i))}" alt="" loading="lazy" />
+          <div class="event-badges">
+            <span class="badge ${isUpcoming ? 'badge-upcoming' : 'badge-past'}">${isUpcoming ? '● Upcoming' : 'Past event'}</span>
+            ${evt.category ? `<span class="badge badge-category">${escapeHtml(evt.category)}</span>` : ''}
+          </div>
         </div>
-        <div class="event-main">
-          ${evt.category ? `<p class="event-category">${escapeHtml(evt.category)}</p>` : ''}
+        <div class="event-body">
+          <div class="event-meta">
+            <span>📅 <strong>${escapeHtml(formatDate(evt.date, { weekday: 'short' }))}</strong>${evt.startTime ? ` · ${escapeHtml(formatTimeRange(evt))}` : ''}</span>
+            ${evt.location ? `<span>📍 ${escapeHtml(evt.location)}</span>` : ''}
+            ${evt.speaker ? `<span>🎙️ ${escapeHtml(evt.speaker)}</span>` : ''}
+          </div>
           <h3 class="event-title">
             <button class="link-button" data-event-detail="${escapeHtml(evt.id)}">${escapeHtml(evt.title)}</button>
           </h3>
-          <p class="event-meta">
-            <span>${escapeHtml(formatDate(evt.date, { weekday: 'short' }))}${evt.startTime ? ` · ${escapeHtml(formatTimeRange(evt))}` : ''}</span>
-            ${evt.location ? `<span>${escapeHtml(evt.location)}</span>` : ''}
-          </p>
-          ${evt.speaker ? `<p class="event-speaker">${escapeHtml(evt.speaker)}</p>` : ''}
-          ${evt.summary ? `<p class="event-summary">${escapeHtml(evt.summary)}</p>` : ''}
-        </div>
-        <div class="event-actions">
-          ${state.eventView === 'upcoming' ? registerLink(evt, 'btn btn-primary btn-sm') : ''}
-          ${state.eventView === 'upcoming' ? `<button class="btn btn-outline btn-sm" data-event-ics="${escapeHtml(evt.id)}">Add to calendar</button>` : ''}
-          <button class="btn btn-outline btn-sm" data-event-detail="${escapeHtml(evt.id)}">Details</button>
-          ${state.admin ? `<button class="btn btn-outline btn-sm" data-admin="edit-event" data-id="${escapeHtml(evt.id)}">Edit</button>` : ''}
+          <p class="event-summary">${escapeHtml(evt.summary || '')}</p>
+          <div class="event-footer">
+            <div class="event-footer-group">
+              <button class="btn btn-outline btn-sm" data-event-detail="${escapeHtml(evt.id)}">Details</button>
+              ${isUpcoming ? `<button class="btn btn-outline btn-sm" data-event-ics="${escapeHtml(evt.id)}" title="Add to calendar (.ics)">📆 .ics</button>` : ''}
+            </div>
+            <div class="event-footer-group">
+              ${isUpcoming ? registerLink(evt, 'btn btn-primary btn-sm') : ''}
+              ${state.admin ? `<button class="btn btn-outline btn-sm" data-admin="edit-event" data-id="${escapeHtml(evt.id)}">Edit</button>` : ''}
+            </div>
+          </div>
         </div>
       </article>`;
   }).join('');
@@ -174,7 +219,7 @@ function openEventDetail(id) {
   const evt = findEvent(id);
   if (!evt) return;
   const isUpcoming = evt.date >= todayIso();
-  const image = safeUrl(evt.image);
+  const image = mediaUrl(evt.image);
 
   setText('event-dialog-title', evt.title);
   document.getElementById('event-dialog-body').innerHTML = `
@@ -193,27 +238,63 @@ function openEventDetail(id) {
   document.getElementById('event-dialog').showModal();
 }
 
-function renderGallery() {
-  const photos = (state.data.gallery || []).filter(p => safeUrl(p.url));
-  if (!photos.length) return;
+function galleryPhotos() {
+  return (state.data.gallery || [])
+    .map((photo, index) => ({ photo, index }))
+    .filter(({ photo }) => mediaUrl(photo.url))
+    .filter(({ photo }) => state.galleryFilter === 'all' || photo.eventTag === state.galleryFilter);
+}
 
-  document.getElementById('gallery').hidden = false;
-  document.querySelector('[data-section-link="gallery"]').hidden = false;
-  document.getElementById('gallery-grid').innerHTML = photos.map((p, i) => `
-    <button class="gallery-item" data-photo="${i}">
-      <img src="${escapeHtml(safeUrl(p.url))}" alt="${escapeHtml(p.title || '')}" loading="lazy" />
-      <span class="gallery-caption">${escapeHtml(p.title || '')}</span>
-    </button>`).join('');
+function renderGallery() {
+  const all = (state.data.gallery || []).filter(p => mediaUrl(p.url));
+  const tags = [...new Set(all.map(p => p.eventTag).filter(Boolean))];
+  if (state.galleryFilter !== 'all' && !tags.includes(state.galleryFilter)) state.galleryFilter = 'all';
+
+  document.getElementById('gallery-filters').innerHTML = tags.length
+    ? ['all', ...tags].map(tag => `
+        <button class="chip" aria-pressed="${state.galleryFilter === tag}" data-gallery-filter="${escapeHtml(tag)}">
+          ${tag === 'all' ? 'All photos' : escapeHtml(tag)}
+        </button>`).join('')
+    : '';
+
+  const grid = document.getElementById('gallery-grid');
+  if (!all.length) {
+    grid.innerHTML = [
+      ['Talks & lectures', 'Photos from our seminars and Distinguished Lectures will appear here.'],
+      ['Workshops', 'Hands-on sessions and tutorials.'],
+      ['Community', 'Student meetups, networking and chapter gatherings.']
+    ].map(([title, text]) => `
+      <div class="gallery-card gallery-card-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="12" cy="12" r="3.5" /><path d="M8 5l1.5-2h5L16 5" /></svg>
+        <span class="gallery-tag">Coming soon</span>
+        <h3 class="gallery-title">${title}</h3>
+        <p class="gallery-caption">${text}</p>
+      </div>`).join('');
+    return;
+  }
+
+  grid.innerHTML = galleryPhotos().map(({ photo, index }, i) => `
+    <div class="gallery-card">
+      <button class="gallery-open" data-photo="${i}" aria-label="Open photo: ${escapeHtml(photo.title || '')}">
+        <img src="${escapeHtml(mediaUrl(photo.url))}" alt="${escapeHtml(photo.title || '')}" loading="lazy" />
+        <span class="gallery-overlay">
+          ${photo.eventTag ? `<span class="gallery-tag">${escapeHtml(photo.eventTag)}</span>` : ''}
+          <span class="gallery-title">${escapeHtml(photo.title || '')}</span>
+          ${photo.caption ? `<span class="gallery-caption">${escapeHtml(photo.caption)}</span>` : ''}
+        </span>
+      </button>
+      ${state.admin ? `<button class="btn btn-danger btn-sm gallery-delete" data-admin="delete-photo" data-index="${index}">Delete</button>` : ''}
+    </div>`).join('');
 }
 
 function openLightbox(index) {
-  const photos = (state.data.gallery || []).filter(p => safeUrl(p.url));
+  const photos = galleryPhotos();
   if (!photos.length) return;
   state.lightboxIndex = (index + photos.length) % photos.length;
-  const p = photos[state.lightboxIndex];
+  const { photo: p } = photos[state.lightboxIndex];
   setText('lightbox-title', p.title || 'Photo');
   const img = document.getElementById('lightbox-img');
-  img.src = safeUrl(p.url);
+  img.src = mediaUrl(p.url);
   img.alt = p.title || '';
   setText('lightbox-caption', [p.caption, p.date && formatDate(p.date)].filter(Boolean).join(' — '));
   const dialog = document.getElementById('lightbox');
@@ -277,6 +358,7 @@ function setupEventTabs() {
       renderEvents();
     });
   });
+  document.getElementById('event-search').addEventListener('input', renderEvents);
 }
 
 function setupDialogs() {
@@ -286,6 +368,12 @@ function setupDialogs() {
 
     const ics = e.target.closest('[data-event-ics]');
     if (ics) return downloadIcs(ics.dataset.eventIcs);
+
+    const filter = e.target.closest('[data-gallery-filter]');
+    if (filter) {
+      state.galleryFilter = filter.dataset.galleryFilter;
+      return renderGallery();
+    }
 
     const photo = e.target.closest('[data-photo]');
     if (photo) return openLightbox(Number(photo.dataset.photo));
@@ -405,6 +493,11 @@ function formatTimeRange(evt) {
 
 function initials(name) {
   return name.replace(/^(prof|dr)\.?\s+/i, '').split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
+}
+
+/** Image URL to display: a local preview for images uploaded by an admin but not yet published. */
+function mediaUrl(url) {
+  return (typeof admin !== 'undefined' && admin.previews.get(url)) || safeUrl(url);
 }
 
 /** Allow only http(s), mailto and same-site relative URLs. */

@@ -10,7 +10,7 @@ All changeable content lives in [`data/site-data.json`](data/site-data.json).
 
 ## Updating content
 
-### Option A — Admin page (events and stats)
+### Option A — Admin page (events, gallery and stats)
 
 1. Create a GitHub **fine-grained personal access token**
    ([GitHub → Settings → Fine-grained tokens](https://github.com/settings/personal-access-tokens/new)):
@@ -19,7 +19,7 @@ All changeable content lives in [`data/site-data.json`](data/site-data.json).
    - Permissions → Repository → **Contents: Read and write**
    - Give it a short expiration.
 2. On the live site, click **Admin sign in** in the footer and paste the token.
-3. Add/edit/delete events (with optional image upload) and edit the stats strip.
+3. Add/edit/delete events (with optional image upload), upload or remove gallery photos, and edit the stats strip.
 4. Click **Publish changes**. This commits `data/site-data.json` to `main`; the site updates in about a minute.
 
 There is no password in the code: GitHub checks that the token can push to this repository.
@@ -56,7 +56,7 @@ Edit `data/site-data.json` on GitHub (or locally), then run `node test/validate.
   ],
   "gallery": [
     { "url": "assets/uploads/gallery/…jpg", "title": "…", "caption": "…", "date": "2026-11-18" }
-  ],                                       // the Gallery section only appears once it has photos
+  ],                                       // placeholder tiles are shown until photos are added
   "committee": [
     { "name": "…", "role": "Chair", "affiliation": "…", "profileUrl": "https://…",
       "email": "…", "photo": "assets/img/committee/….jpg" }

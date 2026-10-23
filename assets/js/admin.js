@@ -18,7 +18,8 @@ const admin = {
   user: '',
   dataSha: '',       // sha of data/site-data.json the edits are based on
   dirty: false,
-  pendingImages: new Map() // repo path -> base64 JPEG, uploaded on publish
+  pendingImages: new Map(), // repo path -> base64 JPEG, uploaded on publish
+  previews: new Map()       // repo path -> data: URL, so new images show before they are published
 };
 
 function initAdmin() {
@@ -134,6 +135,8 @@ function onAdminClick(e) {
     case 'new-event': return openEventEditor();
     case 'edit-event': return openEventEditor(btn.dataset.id);
     case 'delete-event': return deleteEvent();
+    case 'new-photo': return openPhotoEditor();
+    case 'delete-photo': return deletePhoto(Number(btn.dataset.index));
     case 'edit-stats': return openStatsEditor();
     case 'add-stat': return addStatRow({ value: '', label: '' });
     case 'remove-stat': return btn.closest('.stat-row').remove();
@@ -157,6 +160,9 @@ async function onAdminSubmit(e) {
       toast(`Signed in as ${admin.user}. You can now edit events and stats.`);
     } else if (kind === 'event') {
       await saveEvent(form);
+      form.closest('dialog').close();
+    } else if (kind === 'photo') {
+      await savePhotos(form);
       form.closest('dialog').close();
     } else if (kind === 'stats') {
       saveStats();
@@ -213,9 +219,7 @@ async function saveEvent(form) {
   let image = value('image');
   const file = f.imageFile.files[0];
   if (file) {
-    const path = `assets/uploads/events/${id}-${Date.now().toString(36)}.jpg`;
-    admin.pendingImages.set(path, await compressImage(file, 1600, 0.82));
-    image = path;
+    image = await stageImage(file, `assets/uploads/events/${id}-${Date.now().toString(36)}.jpg`);
   }
 
   const evt = { id };
@@ -254,6 +258,13 @@ function uniqueEventId(date, title) {
   return id;
 }
 
+async function stageImage(file, path) {
+  const base64 = await compressImage(file, 1600, 0.82);
+  admin.pendingImages.set(path, base64);
+  admin.previews.set(path, `data:image/jpeg;base64,${base64}`);
+  return path;
+}
+
 function compressImage(file, maxSize, quality) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -271,6 +282,47 @@ function compressImage(file, maxSize, quality) {
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that image file.')); };
     img.src = url;
   });
+}
+
+// ---------- Gallery ----------
+
+function openPhotoEditor() {
+  const form = document.querySelector('[data-admin-form="photo"]');
+  form.reset();
+  form.elements.date.value = todayIso();
+  const albums = [...new Set((state.data.gallery || []).map(p => p.eventTag).filter(Boolean))];
+  document.getElementById('photo-albums').innerHTML = albums.map(a => `<option value="${escapeHtml(a)}"></option>`).join('');
+  openForm('photo-editor');
+}
+
+async function savePhotos(form) {
+  const f = form.elements;
+  const files = [...f.files.files];
+  if (!files.length) throw new Error('Please choose at least one photo.');
+  const album = f.eventTag.value.trim();
+  const slug = album.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'photo';
+  const gallery = state.data.gallery || (state.data.gallery = []);
+
+  for (const [i, file] of files.entries()) {
+    const url = await stageImage(file, `assets/uploads/gallery/${slug}-${Date.now().toString(36)}-${i}.jpg`);
+    const photo = { url, title: f.title.value.trim() || album, eventTag: album };
+    if (f.date.value) photo.date = f.date.value;
+    if (f.caption.value.trim()) photo.caption = f.caption.value.trim();
+    gallery.unshift(photo);
+  }
+
+  setDirty(true);
+  renderAll();
+  toast(`Added ${files.length} photo${files.length > 1 ? 's' : ''}. Click “Publish changes” to put them on the live site.`);
+}
+
+function deletePhoto(index) {
+  const photo = state.data.gallery?.[index];
+  if (!photo || !confirm(`Remove “${photo.title || 'this photo'}” from the gallery?`)) return;
+  state.data.gallery.splice(index, 1);
+  setDirty(true);
+  renderAll();
+  toast('Photo removed. Click “Publish changes” to update the live site.');
 }
 
 // ---------- Stats ----------
@@ -319,7 +371,8 @@ async function publish(btn) {
     }
 
     for (const [path, content] of admin.pendingImages) {
-      const stillUsed = (state.data.events || []).some(e => e.image === path);
+      const stillUsed = (state.data.events || []).some(e => e.image === path) ||
+        (state.data.gallery || []).some(p => p.url === path);
       if (stillUsed) {
         await gh(`/repos/${ADMIN_REPO}/contents/${path}`, {
           method: 'PUT',

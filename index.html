@@ -32,7 +32,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=202610231619" />
+  <link rel="stylesheet" href="assets/css/style.css?v=202610231624" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -70,7 +70,7 @@
         <a href="#about">About</a>
         <a href="#events">Events</a>
         <a href="#research">Research Areas</a>
-        <a href="#gallery" data-section-link="gallery" hidden>Gallery</a>
+        <a href="#gallery">Gallery</a>
         <a href="#committee">Committee</a>
         <a href="#join" class="nav-cta">Get Involved</a>
       </nav>
@@ -171,16 +171,19 @@
           <div>
             <p class="eyebrow">Events</p>
             <h2 class="section-title">Chapter events</h2>
+            <p class="section-lead">Distinguished Lectures, technical seminars, workshops and student events in London, Ontario.</p>
           </div>
           <div class="section-tools">
-          <button class="btn btn-primary btn-sm admin-only" data-admin="new-event" hidden>+ New event</button>
-          <div class="segmented" role="tablist" aria-label="Event view">
-            <button role="tab" aria-selected="true" data-event-view="upcoming">Upcoming</button>
-            <button role="tab" aria-selected="false" data-event-view="past">Past</button>
-          </div>
+            <input type="search" id="event-search" class="search-input" placeholder="Search events…" aria-label="Search events" />
+            <div class="segmented" role="tablist" aria-label="Event view">
+              <button role="tab" aria-selected="true" data-event-view="all">All</button>
+              <button role="tab" aria-selected="false" data-event-view="upcoming">Upcoming</button>
+              <button role="tab" aria-selected="false" data-event-view="past">Past</button>
+            </div>
+            <button class="btn btn-primary btn-sm admin-only" data-admin="new-event" hidden>+ New event</button>
           </div>
         </div>
-        <div class="event-list" id="event-list" aria-live="polite"></div>
+        <div class="events-grid" id="event-list" aria-live="polite"></div>
       </div>
     </section>
 
@@ -222,12 +225,17 @@
       </div>
     </section>
 
-    <section class="section section-alt" id="gallery" hidden>
+    <section class="section section-alt" id="gallery">
       <div class="container">
         <div class="section-head">
           <div>
             <p class="eyebrow">Gallery</p>
-            <h2 class="section-title">From our events</h2>
+            <h2 class="section-title">Event photo gallery</h2>
+            <p class="section-lead">Highlights from our talks, workshops and community gatherings.</p>
+          </div>
+          <div class="section-tools">
+            <div class="filter-chips" id="gallery-filters" role="group" aria-label="Albums"></div>
+            <button class="btn btn-primary btn-sm admin-only" data-admin="new-photo" hidden>+ Upload photos</button>
           </div>
         </div>
         <div class="gallery-grid" id="gallery-grid"></div>
@@ -265,7 +273,7 @@
           <dl class="join-facts">
             <div>
               <dt>Contact</dt>
-              <dd><a href="mailto:" data-mailto data-email-text></a></dd>
+              <dd><a href="mailto:" data-mailto>Email the chapter &rarr;</a></dd>
             </div>
             <div>
               <dt>Location</dt>
@@ -412,6 +420,27 @@
     </form>
   </dialog>
 
+  <dialog class="dialog" id="photo-editor" aria-labelledby="photo-editor-title">
+    <form class="dialog-form" data-admin-form="photo">
+      <div class="dialog-head">
+        <h2 id="photo-editor-title">Upload photos</h2>
+        <button type="button" class="dialog-close" data-close aria-label="Close">&times;</button>
+      </div>
+      <div class="dialog-body form-grid">
+        <label class="field span-2"><span>Photos * (you can select several)</span><input type="file" name="files" accept="image/*" multiple required /></label>
+        <label class="field"><span>Album *</span><input name="eventTag" required list="photo-albums" placeholder="e.g. Fall Seminar 2026" /><datalist id="photo-albums"></datalist></label>
+        <label class="field"><span>Date</span><input type="date" name="date" /></label>
+        <label class="field span-2"><span>Title</span><input name="title" placeholder="Used for all selected photos; defaults to the album name" /></label>
+        <label class="field span-2"><span>Caption</span><input name="caption" /></label>
+      </div>
+      <div class="dialog-foot">
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-outline" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Add to gallery</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog class="dialog" id="stats-editor" aria-labelledby="stats-editor-title">
     <form class="dialog-form" data-admin-form="stats">
       <div class="dialog-head">
@@ -440,7 +469,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="assets/js/app.js?v=202610231619" defer></script>
-  <script src="assets/js/admin.js?v=202610231619" defer></script>
+  <script src="assets/js/app.js?v=202610231624" defer></script>
+  <script src="assets/js/admin.js?v=202610231624" defer></script>
 </body>
 </html>
