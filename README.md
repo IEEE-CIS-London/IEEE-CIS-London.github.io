@@ -49,7 +49,7 @@ Edit `data/site-data.json` on GitHub (or locally), then run `node test/validate.
       "location": "…",
       "speaker": "…",                      // optional
       "summary": "…",                      // shown on the card
-      "description": "…",                  // shown in the details dialog
+      "description": "…",                  // shown on the event page (event.html?id=…)
       "registrationUrl": "https://events.vtools.ieee.org/m/…",  // optional "Register" button
       "image": "assets/uploads/events/…jpg"                     // optional
     }

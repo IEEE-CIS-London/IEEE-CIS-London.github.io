@@ -77,7 +77,7 @@ const ids = new Set();
 });
 
 // No secrets, hard-coded passwords or leftover UK template content
-const files = ['index.html', 'assets/js/app.js', 'assets/js/admin.js', 'assets/css/style.css', 'data/site-data.json', 'README.md'];
+const files = ['index.html', 'event.html', 'assets/js/app.js', 'assets/js/admin.js', 'assets/css/style.css', 'data/site-data.json', 'README.md'];
 for (const file of files) {
   const text = fs.readFileSync(path.join(ROOT, file), 'utf8');
   if (/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/.test(text)) errors.push(`${file}: contains what looks like a GitHub token`);

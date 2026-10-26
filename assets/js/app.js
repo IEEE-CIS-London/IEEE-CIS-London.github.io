@@ -16,12 +16,16 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', init);
 
+const IS_EVENT_PAGE = document.body?.dataset.page === 'event';
+
 async function init() {
   setText('year', new Date().getFullYear());
   setupNav();
   setupDialogs();
-  setupEventTabs();
-  initHeroCanvas();
+  if (!IS_EVENT_PAGE) {
+    setupEventTabs();
+    initHeroCanvas();
+  }
 
   try {
     const res = await fetch('data/site-data.json', { cache: 'no-cache' });
@@ -31,6 +35,7 @@ async function init() {
     console.error('Could not load data/site-data.json:', err);
   }
 
+  if (IS_EVENT_PAGE) return renderEventPage();
   renderAll();
   if (typeof initAdmin === 'function') initAdmin();
 }
@@ -107,17 +112,17 @@ function renderNextEvent() {
     return;
   }
   body.innerHTML = `
-    <button class="next-event-cover" data-event-detail="${escapeHtml(next.id)}" aria-label="Details: ${escapeHtml(next.title)}">
+    <a class="next-event-cover" href="${eventUrl(next)}" data-event-detail="${escapeHtml(next.id)}" aria-label="Details: ${escapeHtml(next.title)}">
       <img src="${escapeHtml(coverFor(next))}" alt="" />
       ${next.category ? `<span class="badge badge-category">${escapeHtml(next.category)}</span>` : ''}
-    </button>
+    </a>
     <p class="next-event-date">${escapeHtml(formatDate(next.date, { weekday: 'long' }))}${next.startTime ? ` · ${escapeHtml(formatTimeRange(next))}` : ''}</p>
     <h2 class="next-event-title">${escapeHtml(next.title)}</h2>
     ${next.location ? `<p class="next-event-meta">📍 ${escapeHtml(next.location)}</p>` : ''}
     ${next.speaker ? `<p class="next-event-meta">🎙️ ${escapeHtml(next.speaker)}</p>` : ''}
     ${next.summary ? `<p class="next-event-summary">${escapeHtml(next.summary)}</p>` : ''}
     <div class="next-event-actions">
-      <button class="btn btn-accent btn-sm" data-event-detail="${escapeHtml(next.id)}">Details</button>
+      <a class="btn btn-accent btn-sm" href="${eventUrl(next)}" data-event-detail="${escapeHtml(next.id)}">Details</a>
       ${registerLink(next, 'btn btn-ghost btn-sm')}
     </div>`;
 }
@@ -188,13 +193,13 @@ function renderEvents() {
     const isUpcoming = evt.date >= todayIso();
     return `
       <article class="event-card">
-        <div class="event-image-wrap">
+        <a class="event-image-wrap" href="${eventUrl(evt)}" data-event-detail="${escapeHtml(evt.id)}" tabindex="-1" aria-hidden="true">
           <img src="${escapeHtml(coverFor(evt, i))}" alt="" loading="lazy" />
           <div class="event-badges">
             <span class="badge ${isUpcoming ? 'badge-upcoming' : 'badge-past'}">${isUpcoming ? '● Upcoming' : 'Past event'}</span>
             ${evt.category ? `<span class="badge badge-category">${escapeHtml(evt.category)}</span>` : ''}
           </div>
-        </div>
+        </a>
         <div class="event-body">
           <div class="event-meta">
             <span>📅 <strong>${escapeHtml(formatDate(evt.date, { weekday: 'short' }))}</strong>${evt.startTime ? ` · ${escapeHtml(formatTimeRange(evt))}` : ''}</span>
@@ -202,12 +207,12 @@ function renderEvents() {
             ${evt.speaker ? `<span>🎙️ ${escapeHtml(evt.speaker)}</span>` : ''}
           </div>
           <h3 class="event-title">
-            <button class="link-button" data-event-detail="${escapeHtml(evt.id)}">${escapeHtml(evt.title)}</button>
+            <a class="link-button" href="${eventUrl(evt)}" data-event-detail="${escapeHtml(evt.id)}">${escapeHtml(evt.title)}</a>
           </h3>
           <p class="event-summary">${escapeHtml(evt.summary || '')}</p>
           <div class="event-footer">
             <div class="event-footer-group">
-              <button class="btn btn-outline btn-sm" data-event-detail="${escapeHtml(evt.id)}">Details</button>
+              <a class="btn btn-outline btn-sm" href="${eventUrl(evt)}" data-event-detail="${escapeHtml(evt.id)}">Details</a>
               ${isUpcoming ? `<button class="btn btn-outline btn-sm" data-event-ics="${escapeHtml(evt.id)}" title="Add to calendar (.ics)">📆 .ics</button>` : ''}
             </div>
             <div class="event-footer-group">
@@ -225,27 +230,106 @@ function registerLink(evt, className) {
   return url ? `<a class="${className}" href="${escapeHtml(url)}" target="_blank" rel="noopener">Register &#8599;&#xFE0E;</a>` : '';
 }
 
-function openEventDetail(id) {
-  const evt = findEvent(id);
-  if (!evt) return;
-  const isUpcoming = evt.date >= todayIso();
-  const image = mediaUrl(evt.image);
+function eventUrl(evt) {
+  return `event.html?id=${encodeURIComponent(evt.id)}`;
+}
 
-  setText('event-dialog-title', evt.title);
-  document.getElementById('event-dialog-body').innerHTML = `
-    ${image ? `<img class="dialog-image" src="${escapeHtml(image)}" alt="" />` : ''}
+function eventFactsHtml(evt) {
+  return `
     <dl class="detail-list">
       <div><dt>Date</dt><dd>${escapeHtml(formatDate(evt.date, { weekday: 'long' }))}</dd></div>
       ${evt.startTime ? `<div><dt>Time</dt><dd>${escapeHtml(formatTimeRange(evt))} (Eastern Time)</dd></div>` : ''}
       ${evt.location ? `<div><dt>Location</dt><dd>${escapeHtml(evt.location)}</dd></div>` : ''}
       ${evt.speaker ? `<div><dt>Speaker</dt><dd>${escapeHtml(evt.speaker)}</dd></div>` : ''}
-    </dl>
-    <div class="detail-text">${escapeHtml(evt.description || evt.summary || '')}</div>
+    </dl>`;
+}
+
+function eventActionsHtml(evt) {
+  if (evt.date < todayIso()) return '';
+  return `
     <div class="detail-actions">
-      ${isUpcoming ? registerLink(evt, 'btn btn-primary') : ''}
-      ${isUpcoming ? `<button class="btn btn-outline" data-event-ics="${escapeHtml(evt.id)}">Add to calendar (.ics)</button>` : ''}
+      ${registerLink(evt, 'btn btn-primary')}
+      <button class="btn btn-outline" data-event-ics="${escapeHtml(evt.id)}">Add to calendar (.ics)</button>
     </div>`;
+}
+
+/** Admins with unpublished edits preview events in a dialog: the event page only shows published data. */
+function openEventPreview(id) {
+  const evt = findEvent(id);
+  if (!evt) return;
+  const image = mediaUrl(evt.image);
+  setText('event-dialog-title', evt.title);
+  document.getElementById('event-dialog-body').innerHTML =
+    (image ? `<img class="dialog-image" src="${escapeHtml(image)}" alt="" />` : '') + eventFactsHtml(evt) +
+    `<div class="detail-text">${escapeHtml(evt.description || evt.summary || '')}</div>` + eventActionsHtml(evt);
   document.getElementById('event-dialog').showModal();
+}
+
+// ---------- Event page (event.html?id=…) ----------
+
+function renderEventPage() {
+  const root = document.getElementById('event-page');
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const evt = findEvent(id);
+
+  if (!evt) {
+    document.title = 'Event not found | IEEE CIS London Section Chapter';
+    root.innerHTML = `
+      <div class="container event-page-missing">
+        <h1>Event not found</h1>
+        <p>This event may have been moved or removed.</p>
+        <a class="btn btn-primary" href="index.html#events">See all events</a>
+      </div>`;
+    return;
+  }
+
+  const isUpcoming = evt.date >= todayIso();
+  document.title = `${evt.title} | IEEE CIS London Section Chapter`;
+  const description = document.querySelector('meta[name="description"]');
+  if (description && evt.summary) description.content = evt.summary;
+
+  const { upcoming, past } = splitEvents();
+  const others = [...upcoming, ...past].filter(e => e.id !== evt.id).slice(0, 3);
+
+  root.innerHTML = `
+    <section class="event-hero">
+      <img class="event-hero-image" src="${escapeHtml(coverFor(evt))}" alt="" />
+      <div class="container event-hero-inner">
+        <a class="event-back" href="index.html#events">&larr; All events</a>
+        <div class="event-badges">
+          <span class="badge ${isUpcoming ? 'badge-upcoming' : 'badge-past'}">${isUpcoming ? '● Upcoming' : 'Past event'}</span>
+          ${evt.category ? `<span class="badge badge-category">${escapeHtml(evt.category)}</span>` : ''}
+        </div>
+        <h1>${escapeHtml(evt.title)}</h1>
+        <p class="event-hero-date">${escapeHtml(formatDate(evt.date, { weekday: 'long' }))}${evt.startTime ? ` · ${escapeHtml(formatTimeRange(evt))}` : ''}</p>
+      </div>
+    </section>
+    <section class="section event-page-body">
+      <div class="container event-page-grid">
+        <article class="event-page-main">
+          ${evt.summary && evt.description ? `<p class="event-page-lead">${escapeHtml(evt.summary)}</p>` : ''}
+          <div class="detail-text">${escapeHtml(evt.description || evt.summary || 'More details will be announced soon.')}</div>
+        </article>
+        <aside class="event-page-side">
+          ${eventFactsHtml(evt)}
+          ${eventActionsHtml(evt)}
+          <button class="btn btn-outline btn-block" data-copy-link>Copy link</button>
+        </aside>
+      </div>
+    </section>
+    ${others.length ? `
+    <section class="section section-alt">
+      <div class="container">
+        <h2 class="section-title">More events</h2>
+        <ul class="more-events">
+          ${others.map(e => `
+            <li><a href="${eventUrl(e)}">
+              <span class="more-events-date">${escapeHtml(formatDate(e.date))}</span>
+              <span class="more-events-title">${escapeHtml(e.title)}</span>
+            </a></li>`).join('')}
+        </ul>
+      </div>
+    </section>` : ''}`;
 }
 
 function galleryPhotos() {
@@ -374,7 +458,17 @@ function setupEventTabs() {
 function setupDialogs() {
   document.addEventListener('click', e => {
     const detail = e.target.closest('[data-event-detail]');
-    if (detail) return openEventDetail(detail.dataset.eventDetail);
+    if (detail && typeof admin !== 'undefined' && admin.dirty) {
+      e.preventDefault();
+      return openEventPreview(detail.dataset.eventDetail);
+    }
+
+    if (e.target.closest('[data-copy-link]')) {
+      navigator.clipboard?.writeText(location.href).then(() => {
+        e.target.closest('[data-copy-link]').textContent = 'Link copied ✓';
+      });
+      return;
+    }
 
     const ics = e.target.closest('[data-event-ics]');
     if (ics) return downloadIcs(ics.dataset.eventIcs);
@@ -398,6 +492,7 @@ function setupDialogs() {
   });
 
   const lightbox = document.getElementById('lightbox');
+  if (!lightbox) return;
   lightbox.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft') openLightbox(state.lightboxIndex - 1);
     if (e.key === 'ArrowRight') openLightbox(state.lightboxIndex + 1);
