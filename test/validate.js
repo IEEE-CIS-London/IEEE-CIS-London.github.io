@@ -58,6 +58,13 @@ const ids = new Set();
   if (!e.location) warnings.push(`${where}: no location`);
   checkUrl(`${where}.registrationUrl`, e.registrationUrl);
   checkUrl(`${where}.image`, e.image);
+  if (e.images !== undefined) {
+    if (!Array.isArray(e.images)) errors.push(`${where}: images must be an array`);
+    else e.images.forEach((img, j) => checkUrl(`${where}.images[${j}]`, img));
+  }
+  if (e.speakerBio !== undefined && typeof e.speakerBio !== 'string') {
+    errors.push(`${where}: speakerBio must be a string`);
+  }
 });
 
 (data.gallery || []).forEach((p, i) => {

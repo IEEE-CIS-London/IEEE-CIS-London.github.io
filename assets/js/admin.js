@@ -26,9 +26,15 @@ const admin = {
   previews: new Map()       // repo path -> data: URL, so new images show before they are published
 };
 
+let editingEventImages = [];
+
 function initAdmin() {
   document.addEventListener('click', onAdminClick);
   document.querySelectorAll('[data-admin-form]').forEach(form => form.addEventListener('submit', onAdminSubmit));
+  const eventFileInput = document.querySelector('[data-admin-form="event"] input[name="imageFile"]');
+  if (eventFileInput) {
+    eventFileInput.addEventListener('change', onEventFilesSelected);
+  }
   window.addEventListener('beforeunload', e => {
     if (admin.dirty) e.preventDefault();
   });
@@ -46,6 +52,7 @@ function initAdmin() {
 async function gh(path, options = {}) {
   const base = admin.mode === 'password' ? `${ADMIN_API}/github` : 'https://api.github.com';
   const res = await fetch(`${base}${path}`, {
+    cache: 'no-store',
     ...options,
     headers: {
       Accept: 'application/vnd.github+json',
@@ -127,6 +134,7 @@ function forgetSession() {
   try {
     sessionStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem('ieee_cis_london_draft_data');
+    sessionStorage.removeItem('ieee_cis_london_draft_previews');
   } catch { /* storage unavailable */ }
 }
 
@@ -143,6 +151,7 @@ function setDirty(dirty) {
   setText('admin-status', dirty ? 'Unpublished changes' : 'All changes published');
   try {
     sessionStorage.setItem('ieee_cis_london_draft_data', JSON.stringify(state.data));
+    sessionStorage.setItem('ieee_cis_london_draft_previews', JSON.stringify(Object.fromEntries(admin.previews)));
   } catch { /* storage unavailable */ }
 }
 
@@ -164,6 +173,8 @@ function onAdminClick(e) {
     case 'new-past-event': return openEventEditor(null, 'past');
     case 'edit-event': return openEventEditor(btn.dataset.id);
     case 'delete-event': return deleteEvent();
+    case 'remove-event-image': return removeEventImage(Number(btn.dataset.index));
+    case 'make-cover-image': return makeCoverEventImage(Number(btn.dataset.index));
     case 'new-photo': return openPhotoEditor();
     case 'delete-photo': return deletePhoto(Number(btn.dataset.index));
     case 'edit-stats': return openStatsEditor();
@@ -178,9 +189,10 @@ async function onAdminSubmit(e) {
   e.preventDefault();
   const form = e.target;
   const kind = form.dataset.adminForm;
-  const submit = form.querySelector('[type="submit"]');
+  const submitBtns = [...form.querySelectorAll('[type="submit"]')];
+  const saveAnother = e.submitter?.dataset.saveAnother === '1';
   showFormError(form, '');
-  submit.disabled = true;
+  submitBtns.forEach(b => { b.disabled = true; });
   try {
     if (kind === 'sign-in') {
       const token = form.elements.token.value.trim();
@@ -190,8 +202,13 @@ async function onAdminSubmit(e) {
       form.closest('dialog').close();
       toast(`Signed in as ${admin.user}. You can now edit events and stats.`);
     } else if (kind === 'event') {
+      const prevStatus = form.elements.status?.value || '';
       await saveEvent(form);
-      form.closest('dialog').close();
+      if (saveAnother) {
+        resetEventFormForNext(form, prevStatus);
+      } else {
+        form.closest('dialog').close();
+      }
     } else if (kind === 'photo') {
       await savePhotos(form);
       form.closest('dialog').close();
@@ -207,7 +224,7 @@ async function onAdminSubmit(e) {
     }
     showFormError(form, err.message);
   } finally {
-    submit.disabled = false;
+    submitBtns.forEach(b => { b.disabled = false; });
   }
 }
 
@@ -235,14 +252,88 @@ function openEventEditor(id, defaultStatus = '') {
   const evt = id ? findEvent(id) : null;
   setText('event-editor-title', evt ? 'Edit event' : defaultStatus === 'past' ? 'Add past event' : 'New event');
   form.querySelector('[data-admin="delete-event"]').hidden = !evt;
-  for (const name of ['id', 'title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'registrationUrl', 'summary', 'description', 'image']) {
+  for (const name of ['id', 'title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'speakerBio', 'registrationUrl', 'summary', 'description', 'image']) {
     if (form.elements[name]) form.elements[name].value = evt?.[name] || '';
   }
   if (!evt && defaultStatus && form.elements.status) {
     form.elements.status.value = defaultStatus;
   }
+  editingEventImages = evt
+    ? [...new Set([...(Array.isArray(evt.images) ? evt.images : []), ...(evt.image ? [evt.image] : [])].filter(Boolean))]
+    : [];
+  // Only keep manual external URL in the text box if it's not an uploaded repo path
+  if (form.elements.image && /^assets\/uploads\//.test(form.elements.image.value)) {
+    form.elements.image.value = '';
+  }
+  renderEventImagesList();
   document.getElementById('event-dialog').close();
   openForm('event-editor');
+}
+
+function resetEventFormForNext(form, defaultStatus = '') {
+  form.reset();
+  setText('event-editor-title', defaultStatus === 'past' ? 'Add another past event' : 'Add another event');
+  form.querySelector('[data-admin="delete-event"]').hidden = true;
+  if (defaultStatus && form.elements.status) {
+    form.elements.status.value = defaultStatus;
+  }
+  editingEventImages = [];
+  renderEventImagesList();
+  form.elements.title?.focus();
+}
+
+function renderEventImagesList() {
+  const field = document.getElementById('event-images-field');
+  const list = document.getElementById('event-images-list');
+  if (!field || !list) return;
+  field.hidden = editingEventImages.length === 0;
+  list.innerHTML = editingEventImages.map((url, i) => `
+    <div class="event-image-item${i === 0 ? ' is-cover' : ''}">
+      <img src="${escapeHtml(mediaUrl(url))}" alt="Event photo ${i + 1}" />
+      <div class="event-image-item-bar">
+        ${i === 0
+          ? `<span class="event-image-badge">Cover</span>`
+          : `<button type="button" class="event-image-btn" data-admin="make-cover-image" data-index="${i}" title="Set as cover image">Set cover</button>`}
+        <button type="button" class="event-image-btn event-image-remove" data-admin="remove-event-image" data-index="${i}" aria-label="Remove photo ${i + 1}">&times;</button>
+      </div>
+    </div>`).join('');
+}
+
+function removeEventImage(index) {
+  if (index < 0 || index >= editingEventImages.length) return;
+  editingEventImages.splice(index, 1);
+  renderEventImagesList();
+}
+
+function makeCoverEventImage(index) {
+  if (index <= 0 || index >= editingEventImages.length) return;
+  const [picked] = editingEventImages.splice(index, 1);
+  editingEventImages.unshift(picked);
+  renderEventImagesList();
+}
+
+async function onEventFilesSelected(e) {
+  const input = e.target;
+  const form = input.closest('form');
+  const files = [...(input.files || [])];
+  if (!files.length) return;
+  try {
+    showFormError(form, '');
+    const slugBase = sanitizeEventSlug(form.elements.id?.value || form.elements.title?.value || 'event');
+    const stamp = Date.now().toString(36);
+    const paths = await Promise.all(
+      files.map((file, i) => stageImage(file, `assets/uploads/events/${slugBase}-${stamp}-${i}.jpg`))
+    );
+    editingEventImages.push(...paths);
+    input.value = '';
+    renderEventImagesList();
+  } catch (err) {
+    showFormError(form, err.message);
+  }
+}
+
+function sanitizeEventSlug(raw) {
+  return String(raw || 'event').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'event';
 }
 
 async function saveEvent(form) {
@@ -254,17 +345,30 @@ async function saveEvent(form) {
   const existing = value('id') ? findEvent(value('id')) : null;
   const id = existing ? existing.id : uniqueEventId(value('date'), value('title'));
 
-  let image = value('image');
-  const file = f.imageFile.files[0];
-  if (file) {
-    image = await stageImage(file, `assets/uploads/events/${id}-${Date.now().toString(36)}.jpg`);
+  const files = [...(f.imageFile?.files || [])];
+  if (files.length) {
+    const stamp = Date.now().toString(36);
+    const uploaded = await Promise.all(
+      files.map((file, i) => stageImage(file, `assets/uploads/events/${id}-${stamp}-${i}.jpg`))
+    );
+    editingEventImages.push(...uploaded);
+    f.imageFile.value = '';
+  }
+
+  const manualUrl = value('image');
+  const allImages = [...editingEventImages];
+  if (manualUrl && !allImages.includes(manualUrl)) {
+    allImages.unshift(manualUrl);
   }
 
   const evt = { id };
-  for (const name of ['title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'registrationUrl', 'summary', 'description']) {
+  for (const name of ['title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'speakerBio', 'registrationUrl', 'summary', 'description']) {
     if (value(name)) evt[name] = value(name);
   }
-  if (image) evt.image = image;
+  if (allImages.length > 0) {
+    evt.image = allImages[0];
+    if (allImages.length > 1) evt.images = allImages;
+  }
 
   const events = state.data.events || (state.data.events = []);
   const index = events.findIndex(e => e.id === id);
@@ -274,7 +378,7 @@ async function saveEvent(form) {
 
   setDirty(true);
   renderAll();
-  toast(`Saved “${evt.title}”. Click “Publish changes” to put it on the live site.`);
+  toast(`Saved “${evt.title}” (${events.length} total). Click “Publish changes” when you are ready to publish all edits.`);
 }
 
 function deleteEvent() {
@@ -408,16 +512,18 @@ async function publish(btn) {
       throw new Error('Someone else published changes since you signed in. Copy your edits, sign out and sign in again to continue.');
     }
 
-    for (const [path, content] of admin.pendingImages) {
-      const stillUsed = (state.data.events || []).some(e => e.image === path) ||
-        (state.data.gallery || []).some(p => p.url === path);
-      if (stillUsed) {
-        await gh(`/repos/${ADMIN_REPO}/contents/${path}`, {
-          method: 'PUT',
-          body: JSON.stringify({ message: `Upload ${path}`, content, branch: ADMIN_BRANCH })
-        });
-      }
-      admin.pendingImages.delete(path);
+    const toUpload = [...admin.pendingImages.entries()].filter(([path]) =>
+      (state.data.events || []).some(e => e.image === path || (Array.isArray(e.images) && e.images.includes(path))) ||
+      (state.data.gallery || []).some(p => p.url === path)
+    );
+    admin.pendingImages.clear();
+
+    for (const [idx, [path, content]] of toUpload.entries()) {
+      setText('admin-status', `Uploading photo ${idx + 1}/${toUpload.length}…`);
+      await gh(`/repos/${ADMIN_REPO}/contents/${path}`, {
+        method: 'PUT',
+        body: JSON.stringify({ message: `Upload ${path}`, content, branch: ADMIN_BRANCH })
+      });
     }
 
     const { siteMeta, events, gallery, committee } = state.data;

@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=202610251200" />
+  <link rel="stylesheet" href="assets/css/style.css?v=202610281330" />
 </head>
 <body data-page="event">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -103,6 +103,21 @@
     </div>
   </footer>
 
-  <script src="assets/js/app.js?v=202610251200" defer></script>
+  <dialog class="dialog dialog-lightbox" id="lightbox" aria-label="Photo viewer">
+    <div class="dialog-head">
+      <h2 id="lightbox-title"></h2>
+      <button class="dialog-close" data-close aria-label="Close">&times;</button>
+    </div>
+    <figure class="lightbox-figure">
+      <img id="lightbox-img" src="data:," alt="" />
+      <figcaption id="lightbox-caption"></figcaption>
+    </figure>
+    <div class="lightbox-nav">
+      <button class="btn btn-outline btn-sm" data-step="-1">&larr; Previous</button>
+      <button class="btn btn-outline btn-sm" data-step="1">Next &rarr;</button>
+    </div>
+  </dialog>
+
+  <script src="assets/js/app.js?v=202610281330" defer></script>
 </body>
 </html>

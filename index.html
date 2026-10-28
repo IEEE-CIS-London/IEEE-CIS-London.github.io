@@ -32,7 +32,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css?v=202610251200" />
+  <link rel="stylesheet" href="assets/css/style.css?v=202610281330" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -416,17 +416,23 @@
         <label class="field"><span>Start time (Eastern)</span><input type="time" name="startTime" /></label>
         <label class="field"><span>End time (Eastern)</span><input type="time" name="endTime" /></label>
         <label class="field span-2"><span>Location</span><input name="location" placeholder="e.g. Middlesex College, Room 105, Western University" /></label>
-        <label class="field span-2"><span>Speaker(s)</span><input name="speaker" /></label>
+        <label class="field span-2"><span>Speaker(s)</span><input name="speaker" placeholder="e.g. Prof. Jane Smith (Western University)" /></label>
+        <label class="field span-2"><span>Speaker bio / introduction (shown in a dedicated section on the event detail page)</span><textarea name="speakerBio" rows="4" placeholder="Speaker biography, affiliation, research interests, achievements…"></textarea></label>
         <label class="field span-2"><span>Registration link</span><input type="url" name="registrationUrl" placeholder="https://events.vtools.ieee.org/m/…" /></label>
         <label class="field span-2"><span>Short summary (shown on the event card)</span><textarea name="summary" rows="2"></textarea></label>
         <label class="field span-2"><span>Full description</span><textarea name="description" rows="6"></textarea></label>
-        <label class="field span-2"><span>Cover image URL</span><input name="image" placeholder="https://… or upload below" /></label>
-        <label class="field span-2"><span>…or upload an image</span><input type="file" name="imageFile" accept="image/*" /></label>
+        <label class="field span-2"><span>Cover image URL (optional — leave blank for future events if not ready)</span><input name="image" placeholder="https://… or upload one or more photos below" /></label>
+        <label class="field span-2"><span>Upload event photos (optional — you can select multiple images)</span><input type="file" name="imageFile" accept="image/*" multiple /></label>
+        <div class="field span-2" id="event-images-field" hidden>
+          <span>Attached event photos (first photo is used as cover)</span>
+          <div class="event-images-list" id="event-images-list"></div>
+        </div>
       </div>
       <div class="dialog-foot">
         <button type="button" class="btn btn-danger" data-admin="delete-event">Delete</button>
         <span class="spacer"></span>
         <button type="button" class="btn btn-outline" data-close>Cancel</button>
+        <button type="submit" class="btn btn-outline" data-save-another="1">Save &amp; add another</button>
         <button type="submit" class="btn btn-primary">Save event</button>
       </div>
     </form>
@@ -481,7 +487,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="assets/js/app.js?v=202610251200" defer></script>
-  <script src="assets/js/admin.js?v=202610251200" defer></script>
+  <script src="assets/js/app.js?v=202610281330" defer></script>
+  <script src="assets/js/admin.js?v=202610281330" defer></script>
 </body>
 </html>

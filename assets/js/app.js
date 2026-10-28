@@ -11,6 +11,7 @@ const state = {
   eventView: 'all',
   galleryFilter: 'all',
   lightboxIndex: 0,
+  draftPreviews: {},
   admin: false // set by admin.js after a verified GitHub sign-in
 };
 
@@ -40,6 +41,10 @@ async function init() {
     const draft = JSON.parse(sessionStorage.getItem('ieee_cis_london_draft_data') || 'null');
     if (draft && Array.isArray(draft.events)) {
       state.data = { ...state.data, ...draft };
+    }
+    const previews = JSON.parse(sessionStorage.getItem('ieee_cis_london_draft_previews') || 'null');
+    if (previews && typeof previews === 'object') {
+      state.draftPreviews = previews;
     }
   } catch { /* storage unavailable */ }
 
@@ -154,8 +159,17 @@ const PLACEHOLDER_EVENTS = [
   { category: 'Workshop', title: 'Hands-on Workshop & Student Meetup', summary: 'Tutorials, poster sessions and networking for students and young professionals.' }
 ];
 
+function eventPhotos(evt) {
+  if (!evt) return [];
+  const raw = Array.isArray(evt.images) && evt.images.length
+    ? evt.images
+    : (evt.image ? [evt.image] : []);
+  return [...new Set(raw.filter(Boolean))];
+}
+
 function coverFor(evt, i = 0) {
-  return mediaUrl(evt.image) || DEFAULT_COVERS[i % DEFAULT_COVERS.length];
+  const first = eventPhotos(evt)[0];
+  return mediaUrl(first) || DEFAULT_COVERS[i % DEFAULT_COVERS.length];
 }
 
 function renderEvents() {
@@ -303,6 +317,8 @@ function renderEventPage() {
 
   const { upcoming, past } = splitEvents();
   const others = [...upcoming, ...past].filter(e => e.id !== evt.id).slice(0, 3);
+  const photos = eventPhotos(evt).map(url => mediaUrl(url)).filter(Boolean);
+  const hasSpeakerCard = Boolean(evt.speaker || evt.speakerBio);
 
   root.innerHTML = `
     <section class="event-hero">
@@ -322,6 +338,29 @@ function renderEventPage() {
         <article class="event-page-main">
           ${evt.summary && evt.description ? `<p class="event-page-lead">${escapeHtml(evt.summary)}</p>` : ''}
           <div class="detail-text">${escapeHtml(evt.description || evt.summary || 'More details will be announced soon.')}</div>
+          ${hasSpeakerCard ? `
+          <section class="event-speaker-card" aria-labelledby="event-speaker-heading">
+            <p class="eyebrow" id="event-speaker-heading">Speaker Introduction</p>
+            <div class="event-speaker-header">
+              <span class="event-speaker-avatar" aria-hidden="true">${escapeHtml(initials(evt.speaker || 'Speaker'))}</span>
+              <div>
+                <h2 class="event-speaker-name">${escapeHtml(evt.speaker || 'Featured Speaker')}</h2>
+              </div>
+            </div>
+            ${evt.speakerBio
+              ? `<div class="detail-text event-speaker-bio">${escapeHtml(evt.speakerBio)}</div>`
+              : `<p class="event-speaker-bio event-speaker-bio-empty">Speaker biography will be updated soon.</p>`}
+          </section>` : ''}
+          ${photos.length ? `
+          <section class="event-photos-section" aria-labelledby="event-photos-heading">
+            <h2 class="event-sub-title" id="event-photos-heading">Event Photos (${photos.length})</h2>
+            <div class="event-photos-grid">
+              ${photos.map((src, i) => `
+                <button type="button" class="event-photo-thumb" data-photo="${i}" aria-label="View event photo ${i + 1} of ${photos.length}">
+                  <img src="${escapeHtml(src)}" alt="${escapeHtml(evt.title)} — photo ${i + 1}" loading="lazy" />
+                </button>`).join('')}
+            </div>
+          </section>` : ''}
         </article>
         <aside class="event-page-side">
           ${eventFactsHtml(evt)}
@@ -346,6 +385,15 @@ function renderEventPage() {
 }
 
 function galleryPhotos() {
+  if (IS_EVENT_PAGE) {
+    const id = new URLSearchParams(location.search).get('id') || '';
+    const evt = findEvent(id);
+    if (!evt) return [];
+    return eventPhotos(evt).map((url, index) => ({
+      index,
+      photo: { url, title: evt.title, date: evt.date, caption: evt.speaker ? `Speaker: ${evt.speaker}` : '' }
+    }));
+  }
   return (state.data.gallery || [])
     .map((photo, index) => ({ photo, index }))
     .filter(({ photo }) => mediaUrl(photo.url))
@@ -609,7 +657,7 @@ function initials(name) {
 
 /** Image URL to display: a local preview for images uploaded by an admin but not yet published. */
 function mediaUrl(url) {
-  return (typeof admin !== 'undefined' && admin.previews.get(url)) || safeUrl(url);
+  return (typeof admin !== 'undefined' && admin.previews.get(url)) || state.draftPreviews?.[url] || safeUrl(url);
 }
 
 /** Allow only http(s), mailto and same-site relative URLs. */
