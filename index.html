@@ -53,10 +53,11 @@
   <header class="site-header">
     <div class="container header-inner">
       <a href="#top" class="brand" aria-label="IEEE CIS London Section Chapter — home">
-        <img class="brand-mark" src="assets/img/favicon.svg" alt="" width="40" height="40" />
+        <img class="brand-logo" src="assets/img/cis-logo.png" alt="IEEE Computational Intelligence Society" width="118" height="44" />
+        <span class="brand-divider" aria-hidden="true"></span>
         <span class="brand-text">
-          <span class="brand-title">IEEE <b>CIS</b> London</span>
-          <span class="brand-subtitle">Computational Intelligence Society · London Section</span>
+          <span class="brand-title">London Section Chapter</span>
+          <span class="brand-subtitle">London, Ontario · IEEE Canada</span>
         </span>
       </a>
 
@@ -177,6 +178,7 @@
               <button role="tab" aria-selected="false" data-event-view="past">Past</button>
             </div>
             <button class="btn btn-primary btn-sm admin-only" data-admin="new-event" hidden>+ New event</button>
+            <button class="btn btn-outline btn-sm admin-only" data-admin="new-past-event" hidden>+ Add past event</button>
           </div>
         </div>
         <div class="events-grid" id="event-list" aria-live="polite"></div>
@@ -397,7 +399,14 @@
         <input type="hidden" name="id" />
         <label class="field span-2"><span>Title *</span><input name="title" required /></label>
         <label class="field"><span>Date *</span><input type="date" name="date" required /></label>
-        <label class="field"><span>Category</span>
+        <label class="field"><span>Event status</span>
+          <select name="status">
+            <option value="">Auto (by event date)</option>
+            <option value="upcoming">Upcoming event</option>
+            <option value="past">Past / Historical event</option>
+          </select>
+        </label>
+        <label class="field span-2"><span>Category</span>
           <input name="category" list="event-categories" placeholder="e.g. Seminar" />
           <datalist id="event-categories">
             <option value="Seminar"></option><option value="Distinguished Lecture"></option><option value="Workshop"></option>

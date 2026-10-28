@@ -35,6 +35,14 @@ async function init() {
     console.error('Could not load data/site-data.json:', err);
   }
 
+  // If an admin has unsaved/recently edited session data in this tab, use it so standalone event.html reflects edits immediately
+  try {
+    const draft = JSON.parse(sessionStorage.getItem('ieee_cis_london_draft_data') || 'null');
+    if (draft && Array.isArray(draft.events)) {
+      state.data = { ...state.data, ...draft };
+    }
+  } catch { /* storage unavailable */ }
+
   if (IS_EVENT_PAGE) return renderEventPage();
   renderAll();
   if (typeof initAdmin === 'function') initAdmin();
@@ -56,11 +64,16 @@ function todayIso() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(new Date());
 }
 
+function isPastEvent(evt) {
+  if (evt.status === 'past') return true;
+  if (evt.status === 'upcoming') return false;
+  return evt.date < todayIso();
+}
+
 function splitEvents() {
-  const today = todayIso();
   const events = (state.data.events || []).filter(e => e && e.date);
-  const upcoming = events.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
-  const past = events.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date));
+  const upcoming = events.filter(e => !isPastEvent(e)).sort((a, b) => a.date.localeCompare(b.date));
+  const past = events.filter(e => isPastEvent(e)).sort((a, b) => b.date.localeCompare(a.date));
   return { upcoming, past };
 }
 
@@ -190,7 +203,7 @@ function renderEvents() {
   }
 
   list.innerHTML = events.map((evt, i) => {
-    const isUpcoming = evt.date >= todayIso();
+    const isUpcoming = !isPastEvent(evt);
     return `
       <article class="event-card">
         <a class="event-image-wrap" href="${eventUrl(evt)}" data-event-detail="${escapeHtml(evt.id)}" tabindex="-1" aria-hidden="true">
@@ -245,7 +258,7 @@ function eventFactsHtml(evt) {
 }
 
 function eventActionsHtml(evt) {
-  if (evt.date < todayIso()) return '';
+  if (isPastEvent(evt)) return '';
   return `
     <div class="detail-actions">
       ${registerLink(evt, 'btn btn-primary')}
@@ -283,7 +296,7 @@ function renderEventPage() {
     return;
   }
 
-  const isUpcoming = evt.date >= todayIso();
+  const isUpcoming = !isPastEvent(evt);
   document.title = `${evt.title} | IEEE CIS London Section Chapter`;
   const description = document.querySelector('meta[name="description"]');
   if (description && evt.summary) description.content = evt.summary;
@@ -457,12 +470,6 @@ function setupEventTabs() {
 
 function setupDialogs() {
   document.addEventListener('click', e => {
-    const detail = e.target.closest('[data-event-detail]');
-    if (detail && typeof admin !== 'undefined' && admin.dirty) {
-      e.preventDefault();
-      return openEventPreview(detail.dataset.eventDetail);
-    }
-
     if (e.target.closest('[data-copy-link]')) {
       navigator.clipboard?.writeText(location.href).then(() => {
         e.target.closest('[data-copy-link]').textContent = 'Link copied ✓';

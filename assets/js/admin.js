@@ -124,7 +124,10 @@ async function startAdmin() {
 
 function forgetSession() {
   Object.assign(admin, { mode: '', credential: '', user: '' });
-  try { sessionStorage.removeItem(SESSION_KEY); } catch { /* storage unavailable */ }
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem('ieee_cis_london_draft_data');
+  } catch { /* storage unavailable */ }
 }
 
 function signOut() {
@@ -138,6 +141,9 @@ function setDirty(dirty) {
   admin.dirty = dirty;
   document.querySelector('[data-admin="publish"]').disabled = !dirty;
   setText('admin-status', dirty ? 'Unpublished changes' : 'All changes published');
+  try {
+    sessionStorage.setItem('ieee_cis_london_draft_data', JSON.stringify(state.data));
+  } catch { /* storage unavailable */ }
 }
 
 // ---------- Event handlers ----------
@@ -155,6 +161,7 @@ function onAdminClick(e) {
 
   switch (action) {
     case 'new-event': return openEventEditor();
+    case 'new-past-event': return openEventEditor(null, 'past');
     case 'edit-event': return openEventEditor(btn.dataset.id);
     case 'delete-event': return deleteEvent();
     case 'new-photo': return openPhotoEditor();
@@ -222,14 +229,17 @@ function showFormError(form, message) {
 
 // ---------- Events ----------
 
-function openEventEditor(id) {
+function openEventEditor(id, defaultStatus = '') {
   const form = document.querySelector('[data-admin-form="event"]');
   form.reset();
   const evt = id ? findEvent(id) : null;
-  setText('event-editor-title', evt ? 'Edit event' : 'New event');
+  setText('event-editor-title', evt ? 'Edit event' : defaultStatus === 'past' ? 'Add past event' : 'New event');
   form.querySelector('[data-admin="delete-event"]').hidden = !evt;
-  for (const name of ['id', 'title', 'date', 'category', 'startTime', 'endTime', 'location', 'speaker', 'registrationUrl', 'summary', 'description', 'image']) {
-    form.elements[name].value = evt?.[name] || '';
+  for (const name of ['id', 'title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'registrationUrl', 'summary', 'description', 'image']) {
+    if (form.elements[name]) form.elements[name].value = evt?.[name] || '';
+  }
+  if (!evt && defaultStatus && form.elements.status) {
+    form.elements.status.value = defaultStatus;
   }
   document.getElementById('event-dialog').close();
   openForm('event-editor');
@@ -237,7 +247,7 @@ function openEventEditor(id) {
 
 async function saveEvent(form) {
   const f = form.elements;
-  const value = name => f[name].value.trim();
+  const value = name => (f[name] ? f[name].value.trim() : '');
   if (value('endTime') && !value('startTime')) throw new Error('Please add a start time, or clear the end time.');
   if (value('startTime') && value('endTime') && value('endTime') <= value('startTime')) throw new Error('End time must be after the start time.');
 
@@ -251,7 +261,7 @@ async function saveEvent(form) {
   }
 
   const evt = { id };
-  for (const name of ['title', 'date', 'category', 'startTime', 'endTime', 'location', 'speaker', 'registrationUrl', 'summary', 'description']) {
+  for (const name of ['title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'registrationUrl', 'summary', 'description']) {
     if (value(name)) evt[name] = value(name);
   }
   if (image) evt.image = image;
