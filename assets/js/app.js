@@ -386,36 +386,104 @@ function renderEventPage() {
     </section>` : ''}`;
 }
 
+function galleryAlbums() {
+  const albums = [];
+  const usedUrls = new Set();
+
+  // 1. One album per Event that has uploaded photos (sorted newest event first)
+  const eventsWithPhotos = [...(state.data.events || [])]
+    .filter(e => e && eventPhotos(e).some(u => mediaUrl(u)))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  for (const evt of eventsWithPhotos) {
+    const urls = eventPhotos(evt).filter(u => mediaUrl(u));
+    urls.forEach(u => usedUrls.add(u));
+    albums.push({
+      key: `event:${evt.id}`,
+      eventId: evt.id,
+      tag: evt.category || 'Event',
+      title: evt.title,
+      date: evt.date,
+      caption: [evt.date && formatDate(evt.date), evt.speaker].filter(Boolean).join(' · '),
+      cover: urls[0],
+      photos: urls.map((url, idx) => ({
+        url,
+        title: `${evt.title} (${idx + 1} / ${urls.length})`,
+        date: evt.date,
+        caption: evt.speaker ? `Speaker: ${evt.speaker}` : (evt.location || '')
+      }))
+    });
+  }
+
+  // 2. Group any standalone gallery photos by their album name (eventTag) so 1 album = 1 card
+  const byTag = new Map();
+  (state.data.gallery || []).forEach((p, index) => {
+    if (!mediaUrl(p.url) || usedUrls.has(p.url)) return;
+    const tag = p.eventTag || p.title || 'Chapter Photos';
+    if (!byTag.has(tag)) byTag.set(tag, []);
+    byTag.get(tag).push({ photo: p, index });
+  });
+
+  for (const [tag, items] of byTag.entries()) {
+    const first = items[0].photo;
+    albums.push({
+      key: `gallery:${tag}`,
+      galleryTag: tag,
+      tag,
+      title: first.title || tag,
+      date: first.date || '',
+      caption: [first.date && formatDate(first.date), first.caption].filter(Boolean).join(' · '),
+      cover: first.url,
+      photos: items.map(({ photo }, idx) => ({
+        url: photo.url,
+        title: `${photo.title || tag} (${idx + 1} / ${items.length})`,
+        date: photo.date,
+        caption: photo.caption || ''
+      }))
+    });
+  }
+
+  return albums;
+}
+
 function galleryPhotos() {
   if (IS_EVENT_PAGE) {
     const id = new URLSearchParams(location.search).get('id') || '';
     const evt = findEvent(id);
     if (!evt) return [];
-    return eventPhotos(evt).map((url, index) => ({
+    const urls = eventPhotos(evt).filter(u => mediaUrl(u));
+    return urls.map((url, index) => ({
       index,
-      photo: { url, title: evt.title, date: evt.date, caption: evt.speaker ? `Speaker: ${evt.speaker}` : '' }
+      photo: {
+        url,
+        title: `${evt.title} (${index + 1} / ${urls.length})`,
+        date: evt.date,
+        caption: evt.speaker ? `Speaker: ${evt.speaker}` : ''
+      }
     }));
   }
-  return (state.data.gallery || [])
-    .map((photo, index) => ({ photo, index }))
-    .filter(({ photo }) => mediaUrl(photo.url))
-    .filter(({ photo }) => state.galleryFilter === 'all' || photo.eventTag === state.galleryFilter);
+  if (Array.isArray(state.lightboxAlbum) && state.lightboxAlbum.length) {
+    return state.lightboxAlbum.map((photo, index) => ({ photo, index }));
+  }
+  const firstAlbum = galleryAlbums()[0];
+  return firstAlbum ? firstAlbum.photos.map((photo, index) => ({ photo, index })) : [];
 }
 
 function renderGallery() {
-  const all = (state.data.gallery || []).filter(p => mediaUrl(p.url));
-  const tags = [...new Set(all.map(p => p.eventTag).filter(Boolean))];
+  const allAlbums = galleryAlbums();
+  const tags = [...new Set(allAlbums.map(a => a.tag).filter(Boolean))];
   if (state.galleryFilter !== 'all' && !tags.includes(state.galleryFilter)) state.galleryFilter = 'all';
 
-  document.getElementById('gallery-filters').innerHTML = tags.length
+  document.getElementById('gallery-filters').innerHTML = tags.length > 1
     ? ['all', ...tags].map(tag => `
         <button class="chip" aria-pressed="${state.galleryFilter === tag}" data-gallery-filter="${escapeHtml(tag)}">
-          ${tag === 'all' ? 'All photos' : escapeHtml(tag)}
+          ${tag === 'all' ? 'All events' : escapeHtml(tag)}
         </button>`).join('')
     : '';
 
+  const filtered = allAlbums.filter(a => state.galleryFilter === 'all' || a.tag === state.galleryFilter);
   const grid = document.getElementById('gallery-grid');
-  if (!all.length) {
+  if (!filtered.length) {
     grid.innerHTML = [
       ['Talks & lectures', 'Photos from our seminars and Distinguished Lectures will appear here.'],
       ['Workshops', 'Hands-on sessions and tutorials.'],
@@ -430,18 +498,28 @@ function renderGallery() {
     return;
   }
 
-  grid.innerHTML = galleryPhotos().map(({ photo, index }, i) => `
+  grid.innerHTML = filtered.map((album, i) => `
     <div class="gallery-card">
-      <button class="gallery-open" data-photo="${i}" aria-label="Open photo: ${escapeHtml(photo.title || '')}">
-        <img src="${escapeHtml(mediaUrl(photo.url))}" alt="${escapeHtml(photo.title || '')}" loading="lazy" />
+      <button class="gallery-open" data-album="${i}" aria-label="Open album: ${escapeHtml(album.title)} (${album.photos.length} photos)">
+        <img src="${escapeHtml(mediaUrl(album.cover))}" alt="${escapeHtml(album.title)}" loading="lazy" />
+        <span class="gallery-count-badge">${album.photos.length} photo${album.photos.length > 1 ? 's' : ''}</span>
         <span class="gallery-overlay">
-          ${photo.eventTag ? `<span class="gallery-tag">${escapeHtml(photo.eventTag)}</span>` : ''}
-          <span class="gallery-title">${escapeHtml(photo.title || '')}</span>
-          ${photo.caption ? `<span class="gallery-caption">${escapeHtml(photo.caption)}</span>` : ''}
+          ${album.tag ? `<span class="gallery-tag">${escapeHtml(album.tag)}</span>` : ''}
+          <span class="gallery-title">${escapeHtml(album.title)}</span>
+          ${album.caption ? `<span class="gallery-caption">${escapeHtml(album.caption)}</span>` : ''}
         </span>
       </button>
-      ${state.admin ? `<button class="btn btn-danger btn-sm gallery-delete" data-admin="delete-photo" data-index="${index}">Delete</button>` : ''}
+      ${state.admin && album.eventId ? `<button class="btn btn-outline btn-sm gallery-delete" data-admin="edit-event" data-id="${escapeHtml(album.eventId)}">Edit</button>` : ''}
+      ${state.admin && album.galleryTag ? `<button class="btn btn-danger btn-sm gallery-delete" data-admin="delete-album" data-tag="${escapeHtml(album.galleryTag)}">Delete</button>` : ''}
     </div>`).join('');
+}
+
+function openAlbumLightbox(albumIndex) {
+  const allAlbums = galleryAlbums().filter(a => state.galleryFilter === 'all' || a.tag === state.galleryFilter);
+  const album = allAlbums[albumIndex];
+  if (!album || !album.photos.length) return;
+  state.lightboxAlbum = album.photos;
+  openLightbox(0);
 }
 
 function openLightbox(index) {
@@ -535,6 +613,9 @@ function setupDialogs() {
       state.galleryFilter = filter.dataset.galleryFilter;
       return renderGallery();
     }
+
+    const album = e.target.closest('[data-album]');
+    if (album) return openAlbumLightbox(Number(album.dataset.album));
 
     const photo = e.target.closest('[data-photo]');
     if (photo) return openLightbox(Number(photo.dataset.photo));

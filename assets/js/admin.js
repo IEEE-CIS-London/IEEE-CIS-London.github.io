@@ -182,6 +182,7 @@ function onAdminClick(e) {
     case 'make-cover-image': return makeCoverEventImage(Number(btn.dataset.index));
     case 'new-photo': return openPhotoEditor();
     case 'delete-photo': return deletePhoto(Number(btn.dataset.index));
+    case 'delete-album': return deleteAlbum(btn.dataset.tag);
     case 'edit-stats': return openStatsEditor();
     case 'add-stat': return addStatRow({ value: '', label: '' });
     case 'remove-stat': return btn.closest('.stat-row').remove();
@@ -470,6 +471,14 @@ function deletePhoto(index) {
   setDirty(true);
   renderAll();
   toast('Photo removed. Click “Publish changes” to update the live site.');
+}
+
+function deleteAlbum(tag) {
+  if (!tag || !confirm(`Remove album “${tag}” from the gallery?`)) return;
+  state.data.gallery = (state.data.gallery || []).filter(p => (p.eventTag || p.title || 'Chapter Photos') !== tag);
+  setDirty(true);
+  renderAll();
+  toast('Album removed. Click “Publish changes” to update the live site.');
 }
 
 // ---------- Stats ----------
