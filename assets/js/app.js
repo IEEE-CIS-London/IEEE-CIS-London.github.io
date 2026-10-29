@@ -318,7 +318,8 @@ function renderEventPage() {
   const { upcoming, past } = splitEvents();
   const others = [...upcoming, ...past].filter(e => e.id !== evt.id).slice(0, 3);
   const photos = eventPhotos(evt).map(url => mediaUrl(url)).filter(Boolean);
-  const hasSpeakerCard = Boolean(evt.speaker || evt.speakerBio);
+  const speakerLink = safeUrl(evt.speakerUrl);
+  const hasSpeakerCard = Boolean(evt.speaker || evt.speakerBio || speakerLink);
 
   root.innerHTML = `
     <section class="event-hero">
@@ -343,8 +344,9 @@ function renderEventPage() {
             <p class="eyebrow" id="event-speaker-heading">Speaker Introduction</p>
             <div class="event-speaker-header">
               <span class="event-speaker-avatar" aria-hidden="true">${escapeHtml(initials(evt.speaker || 'Speaker'))}</span>
-              <div>
+              <div class="event-speaker-title-group">
                 <h2 class="event-speaker-name">${escapeHtml(evt.speaker || 'Featured Speaker')}</h2>
+                ${speakerLink ? `<a class="event-speaker-link" href="${escapeHtml(speakerLink)}" target="_blank" rel="noopener">Speaker Homepage / CV &#8599;&#xFE0E;</a>` : ''}
               </div>
             </div>
             ${evt.speakerBio

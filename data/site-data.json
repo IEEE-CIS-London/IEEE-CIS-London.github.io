@@ -24,33 +24,18 @@
   },
   "events": [
     {
-      "id": "2026-10-30-test-test",
-      "title": "11111",
-      "date": "2026-09-24",
-      "startTime": "16:50",
-      "endTime": "18:54",
-      "image": "assets/uploads/events/2026-10-30-test-test-mvlg7an7.jpg"
-    },
-    {
-      "id": "2026-11-03-try-another-time",
-      "title": "Try another time",
-      "date": "2026-11-03",
-      "category": "Workshop",
-      "startTime": "13:35",
-      "endTime": "16:35",
-      "location": "MC316",
-      "speaker": "Try",
-      "speakerBio": "Postdoctoral scholar at the University of Western",
-      "registrationUrl": "https:///www.google.com",
-      "summary": "asd",
-      "description": "asd",
-      "image": "assets/uploads/events/try-another-time-mvromv6o-0.jpg",
-      "images": [
-        "assets/uploads/events/try-another-time-mvromv6o-0.jpg",
-        "assets/uploads/events/try-another-time-mvromv6o-1.jpg",
-        "assets/uploads/events/try-another-time-mvromv6o-2.jpg",
-        "assets/uploads/events/try-another-time-mvromv6o-3.jpg"
-      ]
+      "id": "2026-10-29-extracting-training-data-diffusion-language-models",
+      "title": "Extracting Training Data from Diffusion Language Models via Infilling",
+      "date": "2026-10-29",
+      "category": "Seminar",
+      "startTime": "15:00",
+      "location": "MC316, Middlesex College, Western University",
+      "speaker": "Dr. Yihan Wang (University of Waterloo)",
+      "speakerUrl": "https://yihan-wang.com/cv.pdf",
+      "speakerBio": "Yihan Wang is a postdoctoral scholar in the Secure Systems Group, part of the Cryptography, Security, and Privacy (CrySP) Lab at the University of Waterloo, where he works with Prof. N. Asokan. He received his PhD in 2025 from the Academy of Mathematics and Systems Science, Chinese Academy of Sciences. His research focuses on AI safety and trustworthy machine learning. He has published a series of works on copyright and privacy protection, as well as on the security of AI systems, in top venues including NeurIPS, ICML, ICLR, CVPR, and EMNLP.",
+      "registrationUrl": "https://events.vtools.ieee.org/event/register/588536",
+      "summary": "Diffusion language models generate text by filling in masked tokens using surrounding context. But could this ability expose private training data? This talk introduces infilling extraction and explores whether these models can reveal user prompts or redacted personal information, and how instruction tuning and decoding settings affect privacy risks.",
+      "description": "Diffusion language models (DLMs) are an emerging alternative to autoregressive LLMs. Instead of writing left to right, they fill in masked tokens in parallel at any position, using context on both sides. This makes them faster to generate and naturally suited to infilling, and they have quickly moved from research models to commercial systems. Their privacy risks, however, remain largely unexplored. Training-data extraction has so far been studied almost entirely with prefix prompts.\n\nIn this talk I ask what changes when a model can fill in blanks anywhere. I introduce infilling extraction, a mask-based extraction protocol that generalizes prefix extraction, and use it to study how the placement of the revealed context affects extraction, whether attackers can recover user prompts or redacted personal information, whether memorization survives instruction tuning, and how decoding settings affect leakage.\n\nFree admission. All are welcome!"
     }
   ],
   "gallery": [],
