@@ -150,8 +150,13 @@ function setDirty(dirty) {
   document.querySelector('[data-admin="publish"]').disabled = !dirty;
   setText('admin-status', dirty ? 'Unpublished changes' : 'All changes published');
   try {
-    sessionStorage.setItem('ieee_cis_london_draft_data', JSON.stringify(state.data));
-    sessionStorage.setItem('ieee_cis_london_draft_previews', JSON.stringify(Object.fromEntries(admin.previews)));
+    if (dirty) {
+      sessionStorage.setItem('ieee_cis_london_draft_data', JSON.stringify(state.data));
+      sessionStorage.setItem('ieee_cis_london_draft_previews', JSON.stringify(Object.fromEntries(admin.previews)));
+    } else {
+      sessionStorage.removeItem('ieee_cis_london_draft_data');
+      sessionStorage.removeItem('ieee_cis_london_draft_previews');
+    }
   } catch { /* storage unavailable */ }
 }
 

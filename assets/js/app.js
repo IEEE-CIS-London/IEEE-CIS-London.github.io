@@ -29,7 +29,7 @@ async function init() {
   }
 
   try {
-    const res = await fetch('data/site-data.json', { cache: 'no-cache' });
+    const res = await fetch('data/site-data.json', { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     state.data = { ...state.data, ...(await res.json()) };
   } catch (err) {
