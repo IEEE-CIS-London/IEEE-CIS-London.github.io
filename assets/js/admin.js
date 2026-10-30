@@ -258,7 +258,7 @@ function openEventEditor(id, defaultStatus = '') {
   const evt = id ? findEvent(id) : null;
   setText('event-editor-title', evt ? 'Edit event' : defaultStatus === 'past' ? 'Add past event' : 'New event');
   form.querySelector('[data-admin="delete-event"]').hidden = !evt;
-  for (const name of ['id', 'title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'speakerUrl', 'speakerBio', 'registrationUrl', 'summary', 'description', 'image']) {
+  for (const name of ['id', 'title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'speakerUrl', 'speakerBio', 'registrationUrl', 'summary', 'description', 'video', 'image']) {
     if (form.elements[name]) form.elements[name].value = evt?.[name] || '';
   }
   if (!evt && defaultStatus && form.elements.status) {
@@ -368,7 +368,7 @@ async function saveEvent(form) {
   }
 
   const evt = { id };
-  for (const name of ['title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'speakerUrl', 'speakerBio', 'registrationUrl', 'summary', 'description']) {
+  for (const name of ['title', 'date', 'status', 'category', 'startTime', 'endTime', 'location', 'speaker', 'speakerUrl', 'speakerBio', 'registrationUrl', 'summary', 'description', 'video']) {
     if (value(name)) evt[name] = value(name);
   }
   if (allImages.length > 0) {

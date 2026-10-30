@@ -58,6 +58,7 @@ const ids = new Set();
   if (!e.location) warnings.push(`${where}: no location`);
   checkUrl(`${where}.registrationUrl`, e.registrationUrl);
   checkUrl(`${where}.speakerUrl`, e.speakerUrl);
+  checkUrl(`${where}.video`, e.video);
   checkUrl(`${where}.image`, e.image);
   if (e.images !== undefined) {
     if (!Array.isArray(e.images)) errors.push(`${where}: images must be an array`);

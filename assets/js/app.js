@@ -318,6 +318,7 @@ function renderEventPage() {
   const { upcoming, past } = splitEvents();
   const others = [...upcoming, ...past].filter(e => e.id !== evt.id).slice(0, 3);
   const photos = eventPhotos(evt).map(url => mediaUrl(url)).filter(Boolean);
+  const videoUrl = safeUrl(evt.video);
   const speakerLink = safeUrl(evt.speakerUrl);
   const hasSpeakerCard = Boolean(evt.speaker || evt.speakerBio || speakerLink);
 
@@ -367,6 +368,7 @@ function renderEventPage() {
         <aside class="event-page-side">
           ${eventFactsHtml(evt)}
           ${eventActionsHtml(evt)}
+          ${videoUrl ? `<button type="button" class="btn btn-primary btn-block" data-fv-restore>&#9654; Event highlight video</button>` : ''}
           <button class="btn btn-outline btn-block" data-copy-link>Copy link</button>
         </aside>
       </div>
@@ -383,7 +385,119 @@ function renderEventPage() {
             </a></li>`).join('')}
         </ul>
       </div>
-    </section>` : ''}`;
+    </section>` : ''}
+    ${videoUrl ? `
+    <aside class="floating-video" id="floating-video" aria-label="Event highlight video player">
+      <div class="floating-video-bar" id="floating-video-bar" title="Drag to move">
+        <span class="floating-video-label">
+          <span class="floating-video-dot" aria-hidden="true"></span>
+          Event Highlight
+        </span>
+        <div class="floating-video-actions">
+          <button type="button" class="floating-video-btn" data-fv-pip title="Picture-in-Picture" aria-label="Open in Picture-in-Picture" hidden>&#10697;</button>
+          <button type="button" class="floating-video-btn" data-fv-expand title="Expand / shrink player" aria-label="Toggle larger player">&#10530;</button>
+          <button type="button" class="floating-video-btn" data-fv-minimize title="Minimize video" aria-label="Minimize video player">&minus;</button>
+        </div>
+      </div>
+      <div class="floating-video-stage">
+        <video id="floating-video-el" src="${escapeHtml(videoUrl)}" poster="${escapeHtml(coverFor(evt))}" autoplay muted loop playsinline controls preload="metadata"></video>
+        <button type="button" class="floating-video-unmute" id="floating-video-unmute" aria-label="Unmute video">&#128266; Unmute</button>
+      </div>
+    </aside>
+    <button type="button" class="floating-video-pill" id="floating-video-pill" data-fv-restore hidden aria-label="Reopen event highlight video">
+      <span class="floating-video-dot" aria-hidden="true"></span>
+      &#9654; Event Highlight Video
+    </button>` : ''}`;
+
+  if (videoUrl) setupFloatingVideo();
+}
+
+function setupFloatingVideo() {
+  const box = document.getElementById('floating-video');
+  const bar = document.getElementById('floating-video-bar');
+  const video = document.getElementById('floating-video-el');
+  const pill = document.getElementById('floating-video-pill');
+  const unmuteBtn = document.getElementById('floating-video-unmute');
+  if (!box || !video) return;
+
+  const pipBtn = box.querySelector('[data-fv-pip]');
+  if (pipBtn && document.pictureInPictureEnabled) pipBtn.hidden = false;
+
+  const syncMuteBadge = () => {
+    if (unmuteBtn) unmuteBtn.hidden = !video.muted;
+  };
+  video.addEventListener('volumechange', syncMuteBadge);
+  syncMuteBadge();
+
+  if (unmuteBtn) {
+    unmuteBtn.addEventListener('click', () => {
+      video.muted = false;
+      if (video.volume === 0) video.volume = 1;
+      video.play().catch(() => {});
+      syncMuteBadge();
+    });
+  }
+
+  box.querySelector('[data-fv-expand]')?.addEventListener('click', () => {
+    box.classList.toggle('is-expanded');
+    // Reset custom drag coordinates if expanded overflows viewport
+    if (box.style.left) {
+      const rect = box.getBoundingClientRect();
+      if (rect.right > window.innerWidth) box.style.left = `${Math.max(12, window.innerWidth - rect.width - 16)}px`;
+    }
+  });
+
+  pipBtn?.addEventListener('click', async () => {
+    try {
+      if (document.pictureInPictureElement) await document.exitPictureInPicture();
+      else await video.requestPictureInPicture();
+    } catch { /* PiP unsupported or blocked */ }
+  });
+
+  box.querySelector('[data-fv-minimize]')?.addEventListener('click', () => {
+    video.pause();
+    box.hidden = true;
+    if (pill) pill.hidden = false;
+  });
+
+  document.querySelectorAll('[data-fv-restore]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      box.hidden = false;
+      if (pill) pill.hidden = true;
+      video.play().catch(() => {});
+    });
+  });
+
+  // Drag-to-move support via pointer events on the top bar
+  if (bar) {
+    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+    bar.addEventListener('pointerdown', e => {
+      if (e.target.closest('button')) return;
+      const rect = box.getBoundingClientRect();
+      dragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      origLeft = rect.left;
+      origTop = rect.top;
+      box.style.left = `${origLeft}px`;
+      box.style.top = `${origTop}px`;
+      box.style.right = 'auto';
+      box.style.bottom = 'auto';
+      bar.setPointerCapture(e.pointerId);
+    });
+    bar.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const maxLeft = Math.max(8, window.innerWidth - box.offsetWidth - 8);
+      const maxTop = Math.max(8, window.innerHeight - box.offsetHeight - 8);
+      const nextLeft = Math.min(maxLeft, Math.max(8, origLeft + (e.clientX - startX)));
+      const nextTop = Math.min(maxTop, Math.max(8, origTop + (e.clientY - startY)));
+      box.style.left = `${nextLeft}px`;
+      box.style.top = `${nextTop}px`;
+    });
+    const endDrag = () => { dragging = false; };
+    bar.addEventListener('pointerup', endDrag);
+    bar.addEventListener('pointercancel', endDrag);
+  }
 }
 
 function galleryAlbums() {
