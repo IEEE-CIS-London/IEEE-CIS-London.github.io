@@ -314,6 +314,10 @@ function renderEventPage() {
 
   const isUpcoming = !isPastEvent(evt);
   document.title = `${evt.title} | IEEE CIS London Section Chapter`;
+  const canonical = document.createElement('link');
+  canonical.rel = 'canonical';
+  canonical.href = new URL(eventUrl(evt), location.href).href;
+  document.head.appendChild(canonical);
   const description = document.querySelector('meta[name="description"]');
   if (description && evt.summary) description.content = evt.summary;
 

@@ -1,0 +1,38 @@
+# Keeps the static member lists and sitemap.xml in sync with data/site-data.json,
+# including after edits published from the website's admin page.
+name: Prerender
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - data/site-data.json
+      - assets/js/app.js
+      - index.html
+      - members.html
+      - tools/prerender.js
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prerender
+  cancel-in-progress: false
+
+jobs:
+  prerender:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/prerender.js
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet; then echo "Already up to date"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Prerender member lists and sitemap from site data"
+          git push

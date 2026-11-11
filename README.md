@@ -66,6 +66,14 @@ Edit `data/site-data.json` on GitHub (or locally), then run `node test/validate.
 
 Committee photos should be square, about 320×320 px, with metadata (EXIF/GPS) stripped.
 
+## Search engines
+
+`committee` and `foundingMembers` are also written into `index.html` and `members.html` as plain HTML,
+and `sitemap.xml` lists every page (including each event page), so search engines can read them without
+running JavaScript. `node tools/prerender.js` regenerates these from `data/site-data.json`; the
+**Prerender** GitHub Action runs it automatically whenever the data changes (including admin publishes).
+`robots.txt` allows all crawlers and points to the sitemap.
+
 ## Local preview
 
 ```bash
