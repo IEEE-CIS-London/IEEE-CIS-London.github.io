@@ -540,8 +540,10 @@ async function publish(btn) {
       });
     }
 
-    const { siteMeta, events, gallery, committee } = state.data;
-    const json = JSON.stringify({ siteMeta, events, gallery, committee }, null, 2) + '\n';
+    const { siteMeta, events, gallery, committee, foundingMembers } = state.data;
+    const payload = { siteMeta, events, gallery, committee };
+    if (Array.isArray(foundingMembers)) payload.foundingMembers = foundingMembers;
+    const json = JSON.stringify(payload, null, 2) + '\n';
     const result = await gh(`/repos/${ADMIN_REPO}/contents/${DATA_PATH}`, {
       method: 'PUT',
       body: JSON.stringify({

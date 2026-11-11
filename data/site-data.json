@@ -103,7 +103,7 @@
     {
       "name": "Yuxi Liu",
       "role": "Secretary",
-      "affiliation": "Computer Engineering, Western University",
+      "affiliation": "Department of Electrical and Computer Engineering, Western University",
       "profileUrl": "https://sankunliu.github.io/",
       "email": "yliu4929@uwo.ca",
       "photo": "assets/img/committee/yuxi-liu.jpg"
@@ -115,6 +115,84 @@
       "profileUrl": "https://zhli-cs.github.io/",
       "email": "zli3446@uwo.ca",
       "photo": "assets/img/committee/zhihao-li.jpg"
+    }
+  ],
+  "foundingMembers": [
+    {
+      "name": "Ruiyi Fang",
+      "role": "Chair · Founding Member",
+      "affiliation": "Department of Computer Science, Western University",
+      "profileUrl": "https://ruiyifang.github.io/",
+      "email": "rfang32@uwo.ca",
+      "photo": "assets/img/committee/ruiyi-fang.jpg"
+    },
+    {
+      "name": "Jiale Cai",
+      "role": "Vice Chair · Founding Member",
+      "affiliation": "Department of Computer Science, Western University",
+      "profileUrl": "https://carloscjl.github.io/",
+      "email": "jcai336@uwo.ca",
+      "photo": "assets/img/committee/jiale-cai.jpg"
+    },
+    {
+      "name": "Yuxi Liu",
+      "role": "Secretary · Founding Member",
+      "affiliation": "Department of Electrical and Computer Engineering, Western University",
+      "profileUrl": "https://sankunliu.github.io/",
+      "email": "yliu4929@uwo.ca",
+      "photo": "assets/img/committee/yuxi-liu.jpg"
+    },
+    {
+      "name": "Zhihao Li",
+      "role": "Treasurer · Founding Member",
+      "affiliation": "Department of Computer Science, Western University",
+      "profileUrl": "https://zhli-cs.github.io/",
+      "email": "zli3446@uwo.ca",
+      "photo": "assets/img/committee/zhihao-li.jpg"
+    },
+    {
+      "name": "Gezheng Xu",
+      "role": "Founding Member",
+      "affiliation": "Department of Computer Science, Western University",
+      "profileUrl": "https://xugezheng.com/",
+      "email": "gxu86@uwo.ca",
+      "photo": "assets/img/committee/gezheng-xu.jpg",
+      "bio": "Gezheng Xu earned her PhD in Computer Science from Western University, where she received the Governor General’s Gold Medal. Her research focuses on trustworthy machine learning. She studies how models adapt to new environments when labeled data are scarce, how to uncover performance disparities across demographic groups, and how to protect data from unauthorized use in model training."
+    },
+    {
+      "name": "Hui Guo",
+      "role": "Founding Member",
+      "affiliation": "Department of Computer Science, Western University",
+      "profileUrl": "https://hguo1728.github.io/",
+      "email": "hguo288@uwo.ca",
+      "photo": "assets/img/committee/hui-guo.jpg"
+    },
+    {
+      "name": "Guan Qiang",
+      "role": "Founding Member",
+      "affiliation": "Department of Electrical and Computer Engineering, Western University",
+      "profileUrl": "https://guanqiang1999.github.io/",
+      "email": "gqiang@uwo.ca",
+      "photo": "assets/img/committee/guan-qiang.jpg"
+    },
+    {
+      "name": "Haojin Deng",
+      "role": "Founding Member",
+      "affiliation": "Department of Electrical and Computer Engineering, Western University",
+      "profileUrl": "https://github.com/hdeng26"
+    },
+    {
+      "name": "Yushen Chen",
+      "role": "Founding Member",
+      "affiliation": "Department of Computer Science, Western University",
+      "profileUrl": "https://github.com/IdoChennn",
+      "photo": "assets/img/committee/yushen-chen.jpg"
+    },
+    {
+      "name": "Zhimin Mei",
+      "role": "Founding Member",
+      "affiliation": "Department of Computer Science, Western University",
+      "profileUrl": "https://github.com/mzm1183710118"
     }
   ]
 }

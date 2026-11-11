@@ -85,8 +85,16 @@ const ids = new Set();
   checkUrl(`${where}.photo`, m.photo);
 });
 
+(data.foundingMembers || []).forEach((m, i) => {
+  const where = `foundingMembers[${i}]${m.name ? ` (${m.name})` : ''}`;
+  if (!m.name) errors.push(`${where}: missing "name"`);
+  if (m.email && !EMAIL.test(m.email)) errors.push(`${where}: invalid email "${m.email}"`);
+  checkUrl(`${where}.profileUrl`, m.profileUrl);
+  checkUrl(`${where}.photo`, m.photo);
+});
+
 // No secrets, hard-coded passwords or leftover UK template content
-const files = ['index.html', 'event.html', 'assets/js/app.js', 'assets/js/admin.js', 'assets/css/style.css', 'data/site-data.json', 'README.md'];
+const files = ['index.html', 'event.html', 'members.html', 'assets/js/app.js', 'assets/js/admin.js', 'assets/css/style.css', 'data/site-data.json', 'README.md'];
 for (const file of files) {
   const text = fs.readFileSync(path.join(ROOT, file), 'utf8');
   if (/gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/.test(text)) errors.push(`${file}: contains what looks like a GitHub token`);

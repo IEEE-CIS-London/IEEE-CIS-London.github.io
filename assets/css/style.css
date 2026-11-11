@@ -614,12 +614,45 @@ a.link-button { color: inherit; text-decoration: none; }
 }
 .member-name { font-size: 1.1rem; line-height: 1.3; }
 .member-affil { margin-top: 4px; font-size: 0.9rem; color: var(--text-2); }
-.member-links { display: flex; gap: 16px; margin-top: 14px; font-size: 0.9rem; font-weight: 600; }
+.member-bio {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-2);
+  text-align: left;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.member-links { display: flex; gap: 16px; margin-top: auto; padding-top: 14px; font-size: 0.9rem; font-weight: 600; }
 .member-links a { text-decoration: none; }
 .member-links a:hover { text-decoration: underline; }
 .member-vacant { border-style: dashed; background: transparent; }
 .member-vacant .member-avatar { background: var(--bg-alt); color: var(--text-3); border: 1px dashed var(--border); }
 .member-vacant .member-name { color: var(--text-3); font-weight: 600; }
+
+/* Founding Members page */
+.members-hero {
+  position: relative;
+  color: #fff;
+  background:
+    radial-gradient(640px 320px at 85% 15%, rgba(0, 181, 226, 0.25), transparent 65%),
+    linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, var(--ieee-blue-dark) 100%);
+  padding-block: 56px 52px;
+}
+.members-hero-inner h1 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1.15;
+  margin-bottom: 14px;
+}
+.members-hero-lead {
+  max-width: 720px;
+  font-size: 1.06rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.86);
+}
+.founding-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
 
 /* Join */
 

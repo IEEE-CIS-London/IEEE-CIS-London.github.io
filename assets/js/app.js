@@ -7,7 +7,7 @@
 const TIME_ZONE = 'America/Toronto';
 
 const state = {
-  data: { siteMeta: {}, events: [], gallery: [], committee: [] },
+  data: { siteMeta: {}, events: [], gallery: [], committee: [], foundingMembers: [] },
   eventView: 'all',
   galleryFilter: 'all',
   lightboxIndex: 0,
@@ -18,12 +18,13 @@ const state = {
 document.addEventListener('DOMContentLoaded', init);
 
 const IS_EVENT_PAGE = document.body?.dataset.page === 'event';
+const IS_MEMBERS_PAGE = document.body?.dataset.page === 'members';
 
 async function init() {
   setText('year', new Date().getFullYear());
   setupNav();
   setupDialogs();
-  if (!IS_EVENT_PAGE) {
+  if (!IS_EVENT_PAGE && !IS_MEMBERS_PAGE) {
     setupEventTabs();
     initHeroCanvas();
   }
@@ -49,6 +50,7 @@ async function init() {
   } catch { /* storage unavailable */ }
 
   if (IS_EVENT_PAGE) return renderEventPage();
+  if (IS_MEMBERS_PAGE) return renderFoundingMembersPage();
   renderAll();
   if (typeof initAdmin === 'function') initAdmin();
 }
@@ -650,9 +652,8 @@ function openLightbox(index) {
   if (!dialog.open) dialog.showModal();
 }
 
-function renderCommittee() {
-  const grid = document.getElementById('committee-grid');
-  grid.innerHTML = (state.data.committee || []).map(m => {
+function renderMemberListHtml(members) {
+  return (members || []).map(m => {
     const vacant = !m.name;
     const profile = safeUrl(m.profileUrl);
     const photo = safeUrl(m.photo);
@@ -660,11 +661,12 @@ function renderCommittee() {
       ? `<img class="member-avatar" src="${escapeHtml(photo)}" alt="" loading="lazy" />`
       : `<span class="member-avatar" aria-hidden="true">${vacant ? '?' : escapeHtml(initials(m.name))}</span>`;
     return `
-      <li class="member${vacant ? ' member-vacant' : ''}">
+      <li class="member${vacant ? ' member-vacant' : ''}${m.bio ? ' member-has-bio' : ''}">
         ${avatar}
         <p class="member-role">${escapeHtml(m.role || '')}</p>
         <h3 class="member-name">${vacant ? 'To be announced' : escapeHtml(m.name)}</h3>
         ${m.affiliation ? `<p class="member-affil">${escapeHtml(m.affiliation)}</p>` : ''}
+        ${m.bio ? `<p class="member-bio">${escapeHtml(m.bio)}</p>` : ''}
         ${(profile || m.email) ? `
           <p class="member-links">
             ${profile ? `<a href="${escapeHtml(profile)}" target="_blank" rel="noopener">Profile &#8599;&#xFE0E;</a>` : ''}
@@ -672,6 +674,20 @@ function renderCommittee() {
           </p>` : ''}
       </li>`;
   }).join('');
+}
+
+function renderCommittee() {
+  const grid = document.getElementById('committee-grid');
+  if (grid) grid.innerHTML = renderMemberListHtml(state.data.committee);
+}
+
+function renderFoundingMembersPage() {
+  const grid = document.getElementById('founding-grid');
+  if (!grid) return;
+  const members = Array.isArray(state.data.foundingMembers) && state.data.foundingMembers.length
+    ? state.data.foundingMembers
+    : (state.data.committee || []);
+  grid.innerHTML = renderMemberListHtml(members);
 }
 
 // ---------- Interaction setup ----------
