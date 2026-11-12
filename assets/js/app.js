@@ -660,6 +660,7 @@ function renderMemberListHtml(members) {
   return (members || []).map(m => {
     const vacant = !m.name;
     const profile = safeUrl(m.profileUrl);
+    const bioLink = safeUrl(m.bioUrl);
     const photo = safeUrl(m.photo);
     const avatar = photo
       ? `<img class="member-avatar" src="${escapeHtml(photo)}" alt="" loading="lazy" />`
@@ -670,7 +671,7 @@ function renderMemberListHtml(members) {
         <p class="member-role">${escapeHtml(m.role || '')}</p>
         <h3 class="member-name">${vacant ? 'To be announced' : escapeHtml(m.name)}</h3>
         ${m.affiliation ? `<p class="member-affil">${escapeHtml(m.affiliation)}</p>` : ''}
-        ${m.bio ? `<p class="member-bio">${escapeHtml(m.bio)}</p>` : ''}
+        ${m.bio ? `<p class="member-bio">${bioLink ? `<a href="${escapeHtml(bioLink)}" target="_blank" rel="noopener">${escapeHtml(m.bio)} &#8599;&#xFE0E;</a>` : escapeHtml(m.bio)}</p>` : ''}
         ${(profile || m.email) ? `
           <p class="member-links">
             ${profile ? `<a href="${escapeHtml(profile)}" target="_blank" rel="noopener">Profile &#8599;&#xFE0E;</a>` : ''}

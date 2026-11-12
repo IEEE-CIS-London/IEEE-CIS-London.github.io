@@ -622,6 +622,14 @@ a.link-button { color: inherit; text-decoration: none; }
   color: var(--text-3);
   text-align: center;
 }
+.member-bio a {
+  color: var(--ieee-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+.member-bio a:hover {
+  text-decoration: underline;
+}
 .member-links { display: flex; gap: 16px; margin-top: auto; padding-top: 14px; font-size: 0.9rem; font-weight: 600; }
 .member-links a { text-decoration: none; }
 .member-links a:hover { text-decoration: underline; }

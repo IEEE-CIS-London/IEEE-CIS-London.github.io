@@ -82,6 +82,7 @@ const ids = new Set();
   if (!m.role) errors.push(`${where}: missing "role"`);
   if (m.email && !EMAIL.test(m.email)) errors.push(`${where}: invalid email "${m.email}"`);
   checkUrl(`${where}.profileUrl`, m.profileUrl);
+  checkUrl(`${where}.bioUrl`, m.bioUrl);
   checkUrl(`${where}.photo`, m.photo);
 });
 
@@ -90,6 +91,7 @@ const ids = new Set();
   if (!m.name) errors.push(`${where}: missing "name"`);
   if (m.email && !EMAIL.test(m.email)) errors.push(`${where}: invalid email "${m.email}"`);
   checkUrl(`${where}.profileUrl`, m.profileUrl);
+  checkUrl(`${where}.bioUrl`, m.bioUrl);
   checkUrl(`${where}.photo`, m.photo);
 });
 
